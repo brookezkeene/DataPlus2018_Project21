@@ -1,11 +1,14 @@
+# Load libraries ----------------------------------------------------------
 library(shiny)
 library(shinyjs)
-library(googlesheets)
 library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(googlesheets)
 library(tm)
 library(DT)
 
-## Load Data from Googlesheets
+# Load Data from Googlesheets ---------------------------------------------
 # E-Advisor Database
 gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
 id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
@@ -16,8 +19,200 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 gs_tags <- gs_key("1Zs8ELNUlX5A1pYOkyrJ38nvK2ZSl_vuh7DAdWhnQ30k")
 programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
 
+# Functions for data wrangling-----------------------------------------
+# getAdmit <- function(stringYear)===Create separate dataframes for id_data from each year
+getAdmit <- function(stringYear){
+  return(id_data[id_data['Admit Year'] == stringYear, ])
+}
 
-## Content-Based Filtering
+# countActs <- function(id_data)---Create a function to create a dataframe of num of activities
+countActs <- function(id_data){
+  
+  # loop through each year
+  year = 'Year 1'
+  i = 1;
+  acts1 = list(); # ((name1, name2),(name3),...) 52 rows
+  counts1 = c(); # (1, 1, 2...) 52 elements
+  # loop through each row
+  for (stud in 1:nrow(id_data[year])){
+    program_names = c(); #(name1, name2)
+    # convert string to int
+    act = pull(id_data[year][stud, 1]); 
+    act = unlist(strsplit(act, ', '))
+    act = as.numeric(act); # (code1, code2)
+    count = 0;
+    # change the code to program names
+    for (n in act){
+      if (n == 1000) {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+      }
+      else {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+        count = count +1;
+      }
+    }
+    # count the num of activities
+    counts1[stud] <- count;
+    # append the program names of a specific year to 
+    acts1[[i]] <- program_names;
+    i= i + 1;
+  }
+  
+  year = 'Year 2'
+  i = 1;
+  acts2 = list(); # ((name1, name2),(name3),...) 52 rows
+  counts2 = c(); # (1, 1, 2...) 52 elements
+  # loop through each row
+  for (stud in 1:nrow(id_data[year])){
+    program_names = c(); #(name1, name2)
+    # convert string to int
+    act = pull(id_data[year][stud, 1]); 
+    act = unlist(strsplit(act, ', '))
+    act = as.numeric(act); # (code1, code2)
+    count = 0;
+    # change the code to program names
+    for (n in act){
+      if (n == 1000) {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+      }
+      else {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+        count = count +1;
+      }
+    }
+    # count the num of activities
+    counts2[stud] <- count;    
+    # append the program names of a specific year to 
+    acts2[[i]] <- program_names;
+    i= i + 1;
+  }
+  
+  year = 'Year 3'
+  i = 1;
+  acts3 = list(); # ((name1, name2),(name3),...) 52 rows
+  counts3 = c(); # (1, 1, 2...) 52 elements
+  # loop through each row
+  for (stud in 1:nrow(id_data[year])){
+    program_names = c(); #(name1, name2)
+    # convert string to int
+    act = pull(id_data[year][stud, 1]); 
+    act = unlist(strsplit(act, ', '))
+    act = as.numeric(act); # (code1, code2)
+    count = 0;
+    # change the code to program names
+    for (n in act){
+      if (n == 1000) {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+      }
+      else {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+        count = count +1;
+      }
+    }
+    # count the num of activities
+    counts3[stud] <- count;
+    # append the program names of a specific year to 
+    acts3[[i]] <- program_names;
+    i= i + 1;
+  }
+  
+  ### NOTE!! There no comma in the rows right now, but when there are multiple activities need to add strsplit
+  year = 'Year 4'
+  i = 1;
+  acts4 = list(); # ((name1, name2),(name3),...) 52 rows
+  counts4 = c(); # (1, 1, 2...) 52 elements
+  # loop through each row
+  for (stud in 1:nrow(id_data[year])){
+    program_names = c(); #(name1, name2)
+    # convert string to int
+    act = pull(id_data[year][stud, 1]); 
+    act = as.numeric(act); # (code1, code2)
+    count = 0;
+    # change the code to program names
+    for (n in act){
+      if (n == 1000) {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+      }
+      else {
+        program_name = codeToName(n);
+        program_names <- c(program_names, program_name); 
+        count = count +1;
+      }
+    }
+    # count the num of activities
+    counts4[stud] <- count;
+    # append the program names of a specific year to 
+    acts4[[i]] <- program_names;
+    i= i + 1;
+  }
+  
+  allCounts = do.call(rbind, Map(data.frame, Year1=counts1, Year2=counts2,Year3=counts3,Year4=counts4))
+  #  allActs = list(acts1,acts2,acts3,acts4); # (4 * ((name1, name2),(name3),...))
+  return(allCounts);
+}
+# functions to create df of each year's activities
+numFreshmanYear <- function(allCounts){
+  return(as.data.frame(table(unlist(allCounts[, 1]))))
+}
+
+numSophomoreYear <- function(allCounts){
+  return(as.data.frame(table(unlist(allCounts[, 2]))))
+}
+
+numJuniorYear <- function(allCounts){
+  return(as.data.frame(table(unlist(allCounts[, 3]))))
+}
+
+numSeniorYear <- function(allCounts){
+  return(as.data.frame(table(unlist(allCounts[, 4]))))
+}
+
+# codeToName <- function(code)---Convert code to program name
+codeToName <- function(code){
+  # find the corresponding name of the code
+  program_name = prog_list[prog_list$Code == code, ]$CoCurriculars;
+  return(program_name);
+}
+
+# Create some dataframes for plotting ---------------
+# Create separate dataframes for id_data from each year
+Admit2015 <- getAdmit('2015')
+Admit2016 <- getAdmit('2016')
+Admit2017 <- getAdmit('2017')
+
+# Create dataframes of num of activities
+allCounts2015 <- countActs(Admit2015)
+allCounts2016 <- countActs(Admit2016)
+allCounts2017 <- countActs(Admit2017)
+
+#Df of number of appearances for num of activities
+Fresh2015 <- numFreshmanYear(allCounts2015)
+Sopho2015 <- numSophomoreYear(allCounts2015)
+Junior2015 <- numJuniorYear(allCounts2015)
+Senior2015 <- numSeniorYear(allCounts2015)
+
+Fresh2016 <- numFreshmanYear(allCounts2016)
+Sopho2016 <- numSophomoreYear(allCounts2016)
+Junior2016 <- numJuniorYear(allCounts2016)
+Senior2016 <- numSeniorYear(allCounts2016)
+
+Fresh2017 <- numFreshmanYear(allCounts2017)
+Sopho2017 <- numSophomoreYear(allCounts2017)
+Junior2017 <- numJuniorYear(allCounts2017)
+Senior2017 <- numSeniorYear(allCounts2017)
+
+# To-do: Create a df to get all the program names of id_data and then rank by popularity----------------
+# convert the code to program names
+
+# To-do: use info boxes for stats page-------
+# Content-Based Filtering--------------------------------
 content_filter <- function(netID, progress)
 {
   # Access a Student's Co-Curriculars with their NetID
@@ -57,7 +252,7 @@ content_filter <- function(netID, progress)
   program_names = programs_df[c(1)]              # Column of Program Names
   program_names <- program_names[-1,]
   new_programs_df <- programs_df[-1,-1]          # Remove NA row & program names
-
+  
   progs <- c()
   for(i in rec_progs) {
     index <- which(prog_list$Code %in% i)
@@ -73,7 +268,7 @@ content_filter <- function(netID, progress)
   total_tags = rowSums(new_programs_df)          # Total number of tags for a program
   N = NROW(program_names)                        # Total number of documents
   IDF = log10(N/DF)                              # Inverse Document Frequency
-
+  
   # Create a data frame for a student's participation using their input
   students_df = data.frame(matrix(0,N,1))
   rownames(students_df) <- program_names
@@ -81,18 +276,18 @@ content_filter <- function(netID, progress)
   for(i in student_progs) {
     students_df[i,1] = 1
   }
-
+  
   progress$inc(0.1)                              # Progress Bar - 20%
   
   # Normalize data
   norm_prog <- sweep(new_programs_df, 1, sqrt(total_tags), "/")
-
+  
   # Create matrix of student profiles
   stud_profiles = matrix(NA, nrow = ncol(students_df), ncol = ncol(norm_prog))
   for(i in 1:ncol(students_df)) {
     stud_profiles[i,] = apply(norm_prog, 2, function(x){t(x)%*%students_df[,i]})
   }
-
+  
   # Create matrix of weighted scores of tags for each program
   weighted_scores = t(apply(norm_prog, 1, function(x){x*IDF}))
   
@@ -106,7 +301,7 @@ content_filter <- function(netID, progress)
   }
   
   progress$inc(0.1)                              # Progress Bar - 30%
-
+  
   # Change scores to ranks and delete programs already participated in
   participated <- c()
   for(i in 1:N) {
@@ -119,11 +314,11 @@ content_filter <- function(netID, progress)
   rownames(stud_predictions) <- program_names
   
   stud_predictions <- as.data.frame(stud_predictions[-participated,, drop = FALSE])
-
+  
   return(stud_predictions)
 }
 
-# Collaborative Filtering
+# Collaborative Filtering-------------------------------------
 collaborative_filter <- function(netID, progress)
 {
   ## Function to Calculate Cosine Similarity -- Item vs. Item
@@ -172,8 +367,8 @@ collaborative_filter <- function(netID, progress)
   progress$inc(0.1)                              # Progress Bar - 50%
   
   # Create and label a document term matrix
-    # Documents = Student IDs
-    # Terms = Programs
+  # Documents = Student IDs
+  # Terms = Programs
   corpus <- Corpus(VectorSource(pathways$`programs`))
   ids_programs <- as.data.frame(as.matrix(DocumentTermMatrix(corpus)))
   
@@ -272,8 +467,20 @@ collaborative_filter <- function(netID, progress)
   
   return(stud_predictions)
 }
-
+# Server & Hybrid Rec & Plot--------------------------------------------
 server <- function(input, output, session) {
+  # Plot number of activites=====================
+  
+  # Plot number of activities categorized with admit year
+  
+  # yearPlot
+  output$yearPlot <- renderPlot({
+    # Render a barplot
+    ggplot(data=allCounts2016, aes(x=Year1, y=get(input$year))) +
+      geom_bar(stat="identity") 
+    
+  })
+  
   # Save User Profile
   observeEvent(
     input$submit,
@@ -485,7 +692,7 @@ server <- function(input, output, session) {
       for(i in 1:nrow(prog_sim)) {
         final_sim[i,1] <- prog_sim[i,1]
       }
-
+      
       final_sim <- final_sim[order(final_sim[,1], decreasing = TRUE),]
       final_sim <- final_sim[-1,]
       final_sim <- head(final_sim, n = 10) # display only top 10 programs
@@ -513,7 +720,6 @@ server <- function(input, output, session) {
       )
     }
   )
-  
   ## Thumbs up/down
   observeEvent(
     input$up, {
@@ -526,7 +732,6 @@ server <- function(input, output, session) {
       print('bye')
     }
   )
-  
 }
 
 shinyServer(server)

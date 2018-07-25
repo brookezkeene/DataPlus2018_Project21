@@ -1,10 +1,12 @@
+# Load libraries ----------------------------------------------------------
 library(shiny)
 library(shinyjs)
+library(ggplot2)
+library(googlesheets)
 library(shinydashboard)
 library(shinydashboardPlus)
-library(googlesheets)
 
-## Access Data from Googlesheets
+# Access Data from Googlesheets-------------------------------------------
 # Create list of majors
 gs_maj <- gs_key("1LqaHYZixDr4aMYq64wojMF5AYDVOsD83IWlX-ayDc0c")
 maj_list <- gs_read_csv(gs_maj, col_names = TRUE)
@@ -23,12 +25,13 @@ js_check <- 'Shiny.addCustomMessageHandler("check", function(message) {alert(mes
 js_exists <- 'Shiny.addCustomMessageHandler("exists", function(message) {alert(message);});'
 js_record <- 'Shiny.addCustomMessageHandler("noRecord", function(message) {alert(message);});'
 
+# UI-Header---------------------------------------------------
 header <-  
   dashboardHeader(
     title = "Duke Co-Curricular E-Advisor",
     titleWidth = 300
   )
-
+# UI-Sidebar -------------------------------------------------
 sidebar <- 
   dashboardSidebar(
     width = 300,
@@ -40,11 +43,13 @@ sidebar <-
                badgeLabel = "new", badgeColor = "green"),
       menuItem("Find Similar Co-Curriculars", tabName = "jaccard", icon = icon("th"), 
                badgeLabel = "new", badgeColor = "green"),
+      menuItem("Statistics", tabName = "stats", icon = icon("table"), 
+               badgeLabel = "new", badgeColor = "green"),
       menuItem("Feedback", tabName = "feedback", icon = icon("comment")),
       menuItem("About Us", tabName = "about", icon = icon("address-card"))
     )
   )
-
+# UI-Body------------------------------------------------------
 body <- 
   dashboardBody(
     tabItems(
@@ -102,7 +107,7 @@ body <-
                     actionButton("submit", "Submit")
                 )
               )
-      ),
+              ),
       tabItem(tabName = "hybrid",
               h2("Co-Curricular Recommender"),
               p("Discover new Duke co-curricular activities with the tool below! 
@@ -126,14 +131,14 @@ body <-
                                     below which you used to create your profile."),
                            textInput("recID", label = h3("Enter your NetID"), placeholder = "Ex. abc123"),
                            actionButton("recGo", "Recommend!")
-                    ),
+                           ),
                     column(width = 8,
                            tableOutput("table")
                     ),
                     collapsed = FALSE
-                )
+                    )
               )
-      ),
+              ),
       tabItem(tabName = "jaccard",
               h2("Find Similar Co-Curriculars"),
               p("With this tool, you can discover Duke co-curricular activities that 
@@ -151,11 +156,35 @@ body <-
                          selectInput("recProg", label = h3("Enter a Program"),
                                      choices = prog_choice[-1]),
                          actionButton("recGo2", "Recommend!")
-                  ),
+                         ),
                   column(width = 8,
                          tableOutput("table2")
                   ),
                   collapsed = FALSE
+              )
+              ),
+      tabItem(tabName = "stats",
+              p("I will modify this section later."),
+              # Use a fluid Bootstrap layout
+              fluidPage(    
+                # Give the page a title
+                titlePanel("Statistics & Insights"),
+                # Generate a row with a sidebar
+                sidebarLayout(      
+                  
+                  # Define the sidebar with one input
+                  sidebarPanel(
+                    selectInput("year", "Year:", 
+                                choices=c("Year1", "Year2", "Year3", "Year4")),
+                    hr(),
+                    helpText("Choose the Year.")
+                  ),
+                  
+                  # Create a spot for the barplot
+                  mainPanel(
+                    plotOutput("yearPlot")  
+                  )
+                )
               )
       ),
       tabItem(tabName = "feedback",
@@ -173,27 +202,27 @@ body <-
                             height = '250px',
                             resize = "both"),
               fluidRow(
-                      actionButton("up", label = icon("thumbs-up"),
-                                   style = 'color: green;
-                                    position: relative;
-                                    left: 20px;
-                                    display:block;
-                                    height: 50px;
-                                    width: 50px;
-                                    border-radius: 50%;
-                                    border: 2px solid green;'),
-                       actionButton("down", label = icon("thumbs-down"),
-                                    style = 'color: red;
-                                    position: relative;
-                                    top: -50px;
-                                    left: 80px;
-                                    display:block;
-                                    height: 50px;
-                                    width: 50px;
-                                    border-radius: 50%;
-                                    border: 2px solid red;')
-              )
-      ),
+                actionButton("up", label = icon("thumbs-up"),
+                             style = 'color: green;
+                             position: relative;
+                             left: 20px;
+                             display:block;
+                             height: 50px;
+                             width: 50px;
+                             border-radius: 50%;
+                             border: 2px solid green;'),
+                actionButton("down", label = icon("thumbs-down"),
+                             style = 'color: red;
+                             position: relative;
+                             top: -50px;
+                             left: 80px;
+                             display:block;
+                             height: 50px;
+                             width: 50px;
+                             border-radius: 50%;
+                             border: 2px solid red;')
+                )
+                ),
       tabItem(tabName = "about",
               h2("About Us"),
               p("We are a team of Duke undergraduate students currently working on a", 
@@ -219,10 +248,8 @@ body <-
               p("Project Manager: Lindsay Berry"),
               p("Project Team Members: Alec Ashforth, Brooke Keene, Vincent Liu, Dezmanique Martin"),
               p("Project Clients: Michael Faber, Evan Levine")
-      )
-    )
-  )
+              )
+                )
+              )
 
 ui <- dashboardPage(header, sidebar, body)
-
-shinyUI(ui)
