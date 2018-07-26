@@ -321,17 +321,20 @@ sameMajorPop <- function(major){
 Admit2015 <- getAdmit('2015')
 Admit2016 <- getAdmit('2016')
 Admit2017 <- getAdmit('2017')
+#Admit2018 <- getAdmit('2018')
 
 # Create dataframes of num of activities
 allCounts2015 <- countActs(Admit2015)
 allCounts2016 <- countActs(Admit2016)
 allCounts2017 <- countActs(Admit2017)
+#allCounts2018 <- countActs(Admit2018)
 allCountsAll <- countActs(id_data)
 
 # make new dataframes from allCounts****
 allNum2015 <- all_num(allCounts2015)
 allNum2016 <- all_num(allCounts2016)
 allNum2017 <- all_num(allCounts2017)
+#allNum2018 <- all_num(allCounts2018)
 allNumAll <- all_num(allCountsAll)
 
 # all_numAll <- function(){
@@ -345,26 +348,18 @@ allNumAll <- all_num(allCountsAll)
 allPop2015 <- popActs(Admit2015)
 allPop2016 <- popActs(Admit2016)
 allPop2017 <- popActs(Admit2017)
+#allPop2018 <- popActs(Admit2018)
 allPopAll <- popActs(id_data)
-# Rename dataframes to match with input
-# rename_year(allCounts2015)
-# rename_year(allCounts2016)
-# rename_year(allCounts2017)
 
-# Add the x axis, number of activities
-# cbind(num = 1:52, allCounts2015)
-# cbind(num = 0, allCounts2016)
-# cbind(num = 0, allCounts2017)
-
-# To-do: Create a df to get all the program names of id_data and then rank by popularity----------------
-# convert the code to program names
-
-# To-do: use info boxes for stats page-------
 # Content-Based Filtering--------------------------------
 content_filter <- function(netID, progress)
 {
   # Access a Student's Co-Curriculars with their NetID
   # Find row of given netID
+  # Reload the database (now the database is updated)
+  gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
+  id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
+  
   ids <- id_data[c(1)]
   id_row <- which(ids==netID, arr.ind = TRUE)
   if(length(id_row) == 0) {
@@ -469,6 +464,10 @@ content_filter <- function(netID, progress)
 # Collaborative Filtering-------------------------------------
 collaborative_filter <- function(netID, progress)
 {
+  # Reload the database (now the database is updated)
+  gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
+  id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
+  
   ## Function to Calculate Cosine Similarity -- Item vs. Item
   getCosine <- function(x,y) 
   {
@@ -625,6 +624,7 @@ server <- function(input, output, session) {
            "2019" = allNum2015,
            "2020" = allNum2016,
            "2021" = allNum2017,
+           #"2022" = allNum2018,
            "All" = allNumAll)
       })
   
@@ -633,6 +633,7 @@ server <- function(input, output, session) {
          "2019" = allPop2015,
          "2020" = allPop2016,
          "2021" = allPop2017,
+         #"2022" = allPop2018,
          "All" = allPopAll
          )
   })
@@ -642,12 +643,14 @@ server <- function(input, output, session) {
     # Render a barplot
     ggplot(data=datasetInput1(), aes(x=num_act, y=get(input$grade))) +
       geom_bar(stat="identity",fill="steelblue") + 
+      ggtitle("Student Participation in Programs") +
       xlab('Number of Activities') + 
       ylab("Number of Students") +
       theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5)) + 
       geom_text(aes(label=get(input$grade)), vjust=1.6, color="white", size=3.5)+
       scale_y_continuous(breaks= pretty_breaks())+
-      scale_x_continuous(breaks= pretty_breaks())+
+      scale_x_continuous(breaks = c(0:6))+
       geom_vline(data=datasetInput1(), aes(xintercept=num_act%*%get(input$grade)/sum(get(input$grade))),color="red",
                  linetype="dashed")
     })
@@ -731,10 +734,6 @@ server <- function(input, output, session) {
   observeEvent(
     input$recGo,
     {
-      # Load E-Advisor Database Googlesheet
-      gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
-      id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
-      
       # Progress bar
       rec_progress <- shiny::Progress$new()
       on.exit(rec_progress$close())

@@ -45,6 +45,8 @@ sidebar <-
                badgeLabel = "new", badgeColor = "green"),
       menuItem("Statistics", tabName = "stats", icon = icon("table"), 
                badgeLabel = "new", badgeColor = "green"),
+      menuItem("Pathways", tabName = "pathways", icon = icon("location-arrow"), 
+               badgeLabel = "come out soon", badgeColor = "yellow"),
       menuItem("Feedback", tabName = "feedback", icon = icon("comment")),
       menuItem("About Us", tabName = "about", icon = icon("address-card"))
     )
@@ -54,7 +56,7 @@ body <-
   dashboardBody(
     tabItems(
       tabItem(tabName = "dashboard",                   
-              h2("Dashboard"),
+              fluidPage(h2("Dashboard"),
               h3("Welcome!"),
               p("As we all know, Duke University can be a difficult environment to navigate, especially 
                 with its countless opportunities and resources. Therefore, we have compiled a list of over 
@@ -107,9 +109,10 @@ body <-
                     actionButton("submit", "Submit")
                 )
               )
+              )
               ),
       tabItem(tabName = "hybrid",
-              h2("Co-Curricular Recommender"),
+              fluidPage(h2("Co-Curricular Recommender"),
               p("Discover new Duke co-curricular activities with the tool below! 
                 If you have already completed your user profile, you are able to use
                 our \"Co-Curricular Recommender\" by simply entering your Duke netID and 
@@ -138,9 +141,10 @@ body <-
                     collapsed = FALSE
                     )
               )
+              )
               ),
       tabItem(tabName = "jaccard",
-              h2("Find Similar Co-Curriculars"),
+              fluidPage(h2("Find Similar Co-Curriculars"),
               p("With this tool, you can discover Duke co-curricular activities that 
                 are similar to each other! Just select the activity that you are interested
                 in from the drop down menu and press \"Recommend!\"."),
@@ -162,13 +166,13 @@ body <-
                   ),
                   collapsed = FALSE
               )
+              )
               ),
       tabItem(tabName = "stats",
                # Use a fluid Bootstrap layout
               fluidPage(    
                 # Give the page a title
                 titlePanel("Statistics & Insights"),
-                  # Define the sidebar with one input
               fluidRow(
                  column(4,
                   wellPanel(
