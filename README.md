@@ -8,6 +8,7 @@
 **server.R** &rarr; server R script that handles back-end data management and operations
 * saves and receives data from google sheets
 * hybrid and jaccard recommender tools
+* create graphs for data analysis
 
 ## Recommendation System Algorithms &rarr; Recommendation Algorithms Folder
 **ContentBasedRec.R** &rarr; our initial content-based recommender

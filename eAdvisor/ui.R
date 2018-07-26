@@ -164,35 +164,57 @@ body <-
               )
               ),
       tabItem(tabName = "stats",
-              p("I will modify this section later."),
-              # Use a fluid Bootstrap layout
+               # Use a fluid Bootstrap layout
               fluidPage(    
                 # Give the page a title
                 titlePanel("Statistics & Insights"),
-                # Generate a row with a sidebar
-                sidebarLayout(      
-                  
                   # Define the sidebar with one input
-                  sidebarPanel(
-                    selectInput("class", "Admit Year:", 
-                                choices = c("2015", "2016", "2017")),  
-                    selectInput("grade", "Grade:",
+              fluidRow(
+                 column(4,
+                  wellPanel(
+                    h4("Section 1"),
+                    p(HTML("<i>Number of Students vs. Number of Activities</i>")),
+                    selectInput("class", "The Class of", 
+                                choices = c("2019" ,"2020" ,"2021","All")),  
+                    selectInput("grade", "Grade",
                                 choices = c("Freshman Year" = "fresh", 
                                   "Sophomore Year" = "soph", 
                                   "Junior Year" = "junior", 
                                   "Senior Year" = "senior")
-                                ),
-                      
-                    hr(),
-                    helpText("Choose the Grade"),
-                    actionButton("update", "Update View")
-                ),
+                                ))
+                  ),
+                column(4,
+                  wellPanel(
+                    h4("Section 2"),
+                    p(HTML("<i>Most popular activities by class</i>")),
+                    selectInput("classYear", "The Class of",
+                                choices = c("2019", "2020", "2021", "All")))
+                  ),
+                column(4,
+                       wellPanel(
+                         h4("Section 3"),
+                         div(HTML("<i>Most popular activities by major</i>")),
+                         selectInput("majorPop", "Major", choices = maj_choice))
+                )),
                   # Create a spot for the barplot
-                mainPanel(
-                  plotOutput("gradePlot")  
-                )
+               fluidRow(
+                  mainPanel(width = 12,
+                  tabsetPanel(
+                    tabPanel("Section 1",
+                    plotOutput("gradePlot")),
+                    
+                    tabPanel("Section 2",
+                    DT::dataTableOutput("actTable")),
+                    
+                    tabPanel("Section 3",
+                    DT::dataTableOutput("majorTable"))
+                  )
+                 )
               )
-              )
+            )
+      ),
+      tabItem(tabName = "pathway",
+              h2("Student Pathways")
       ),
       tabItem(tabName = "feedback",
               h2("Feedback"),
