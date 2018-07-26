@@ -4,6 +4,7 @@ library(shinyjs)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(scales)
 library(googlesheets)
 library(tm)
 library(DT)
@@ -25,8 +26,8 @@ getAdmit <- function(stringYear){
   return(id_data[id_data['Admit Year'] == stringYear, ])
 }
 
-# countActs <- function(id_data)---Create a function to create a dataframe of num of activities
-countActs <- function(id_data){
+# countActs <- function(getAdmit)---Create a function to create a dataframe of num of activities
+countActs <- function(getAdmit){
   
   # loop through each year
   year = 'Year 1'
@@ -34,10 +35,10 @@ countActs <- function(id_data){
   acts1 = list(); # ((name1, name2),(name3),...) 52 rows
   counts1 = c(); # (1, 1, 2...) 52 elements
   # loop through each row
-  for (stud in 1:nrow(id_data[year])){
+  for (stud in 1:nrow(getAdmit[year])){
     program_names = c(); #(name1, name2)
     # convert string to int
-    act = pull(id_data[year][stud, 1]); 
+    act = pull(getAdmit[year][stud, 1]); 
     act = unlist(strsplit(act, ', '))
     act = as.numeric(act); # (code1, code2)
     count = 0;
@@ -65,10 +66,10 @@ countActs <- function(id_data){
   acts2 = list(); # ((name1, name2),(name3),...) 52 rows
   counts2 = c(); # (1, 1, 2...) 52 elements
   # loop through each row
-  for (stud in 1:nrow(id_data[year])){
+  for (stud in 1:nrow(getAdmit[year])){
     program_names = c(); #(name1, name2)
     # convert string to int
-    act = pull(id_data[year][stud, 1]); 
+    act = pull(getAdmit[year][stud, 1]); 
     act = unlist(strsplit(act, ', '))
     act = as.numeric(act); # (code1, code2)
     count = 0;
@@ -96,10 +97,10 @@ countActs <- function(id_data){
   acts3 = list(); # ((name1, name2),(name3),...) 52 rows
   counts3 = c(); # (1, 1, 2...) 52 elements
   # loop through each row
-  for (stud in 1:nrow(id_data[year])){
+  for (stud in 1:nrow(getAdmit[year])){
     program_names = c(); #(name1, name2)
     # convert string to int
-    act = pull(id_data[year][stud, 1]); 
+    act = pull(getAdmit[year][stud, 1]); 
     act = unlist(strsplit(act, ', '))
     act = as.numeric(act); # (code1, code2)
     count = 0;
@@ -128,10 +129,10 @@ countActs <- function(id_data){
   acts4 = list(); # ((name1, name2),(name3),...) 52 rows
   counts4 = c(); # (1, 1, 2...) 52 elements
   # loop through each row
-  for (stud in 1:nrow(id_data[year])){
+  for (stud in 1:nrow(getAdmit[year])){
     program_names = c(); #(name1, name2)
     # convert string to int
-    act = pull(id_data[year][stud, 1]); 
+    act = pull(getAdmit[year][stud, 1]); 
     act = as.numeric(act); # (code1, code2)
     count = 0;
     # change the code to program names
@@ -157,22 +158,70 @@ countActs <- function(id_data){
   #  allActs = list(acts1,acts2,acts3,acts4); # (4 * ((name1, name2),(name3),...))
   return(allCounts);
 }
-# functions to create df of each year's activities
-numFreshmanYear <- function(allCounts){
-  return(as.data.frame(table(unlist(allCounts[, 1]))))
+
+# count_num_fresh <- function(x)---function to reorganize the data returned from countActs
+count_num_fresh <- function(x) {
+  #a = as.data.frame(table(unlist(x[,1])))
+  count = c(rep(0,6));
+  for (row in 1:nrow(x)){
+    # n = as.numeric(a[row,1])
+    # if (n %in% count)
+    #   count[n] = count[n+1] + as.numeric(a[row,2])
+    # else
+    #   count[n] = as.numeric(a[row,2])
+    if (x[row,1] == 0) {count[1] = count[1]+1;}
+    else if (x[row,1] == 1) {count[2] = count[2]+1;}
+    else if (x[row,1] == 2) {count[3] = count[3]+1;}
+    else if (x[row,1] == 3) {count[4] = count[4]+1;}
+    else if (x[row,1] == 4) {count[5] = count[5]+1;}
+    else if (x[row,1] == 5) {count[6] = count[6]+1;}
+  }
+  return(count);
+}
+count_num_soph <- function(x) {
+  count = c(rep(0,6));
+  for (row in 1:nrow(x)){
+    if (x[row,2] == 0) {count[1] = count[1]+1;}
+    else if (x[row,2] == 1) {count[2] = count[2]+1;}
+    else if (x[row,2] == 2) {count[3] = count[3]+1;}
+    else if (x[row,2] == 3) {count[4] = count[4]+1;}
+    else if (x[row,2] == 4) {count[5] = count[5]+1;}
+    else if (x[row,2] == 5) {count[6] = count[6]+1;}
+  }
+  return(count);
+}
+count_num_junior <- function(x) {
+  count = c(rep(0,6));
+  for (row in 1:nrow(x)){
+    if (x[row,3] == 0) {count[1] = count[1]+1;}
+    else if (x[row,3] == 1) {count[2] = count[2]+1;}
+    else if (x[row,3] == 2) {count[3] = count[3]+1;}
+    else if (x[row,3] == 3) {count[4] = count[4]+1;}
+    else if (x[row,3] == 4) {count[5] = count[5]+1;}
+    else if (x[row,3] == 5) {count[6] = count[6]+1;}
+  }
+  return(count);
+}
+count_num_senior <- function(x) {
+  count = c(rep(0,6));
+  for (row in 1:nrow(x)){
+    if (x[row,4] == 0) {count[1] = count[1]+1;}
+    else if (x[row,4] == 1) {count[2] = count[2]+1;}
+    else if (x[row,4] == 2) {count[3] = count[3]+1;}
+    else if (x[row,4] == 3) {count[4] = count[4]+1;}
+    else if (x[row,4] == 4) {count[5] = count[5]+1;}
+    else if (x[row,4] == 5) {count[6] = count[6]+1;}
+  }
+  return(count);
 }
 
-numSophomoreYear <- function(allCounts){
-  return(as.data.frame(table(unlist(allCounts[, 2]))))
-}
-
-numJuniorYear <- function(allCounts){
-  return(as.data.frame(table(unlist(allCounts[, 3]))))
-}
-
-numSeniorYear <- function(allCounts){
-  return(as.data.frame(table(unlist(allCounts[, 4]))))
-}
+# all_num <- function(x)---Create dataframe for "# activities vs. # participants" plot
+all_num <- function(countActs)
+  return(data.frame("num_act" = 0:5, 
+                    "fresh" = count_num_fresh(countActs), 
+                    "soph" = count_num_soph(countActs),
+                    "junior" = count_num_junior(countActs), 
+                    "senior" = count_num_senior(countActs)))
 
 # codeToName <- function(code)---Convert code to program name
 codeToName <- function(code){
@@ -192,22 +241,22 @@ allCounts2015 <- countActs(Admit2015)
 allCounts2016 <- countActs(Admit2016)
 allCounts2017 <- countActs(Admit2017)
 
-#Df of number of appearances for num of activities
-Fresh2015 <- numFreshmanYear(allCounts2015)
-Sopho2015 <- numSophomoreYear(allCounts2015)
-Junior2015 <- numJuniorYear(allCounts2015)
-Senior2015 <- numSeniorYear(allCounts2015)
+# make new dataframes from allCounts****
+allNum2015 <- all_num(allCounts2015)
+allNum2016 <- all_num(allCounts2016)
+allNum2017 <- all_num(allCounts2017)
 
-Fresh2016 <- numFreshmanYear(allCounts2016)
-Sopho2016 <- numSophomoreYear(allCounts2016)
-Junior2016 <- numJuniorYear(allCounts2016)
-Senior2016 <- numSeniorYear(allCounts2016)
+# Rename dataframes to match with input
+# rename_year(allCounts2015)
+# rename_year(allCounts2016)
+# rename_year(allCounts2017)
 
-Fresh2017 <- numFreshmanYear(allCounts2017)
-Sopho2017 <- numSophomoreYear(allCounts2017)
-Junior2017 <- numJuniorYear(allCounts2017)
-Senior2017 <- numSeniorYear(allCounts2017)
+# Add the x axis, number of activities
+# cbind(num = 1:52, allCounts2015)
+# cbind(num = 0, allCounts2016)
+# cbind(num = 0, allCounts2017)
 
+# To-do: In "Admit Year", add "All students"-------------
 # To-do: Create a df to get all the program names of id_data and then rank by popularity----------------
 # convert the code to program names
 
@@ -472,13 +521,22 @@ server <- function(input, output, session) {
   # Plot number of activites=====================
   
   # Plot number of activities categorized with admit year
+  datasetInput <- eventReactive(input$update, {
+    switch(input$class,
+           "2015" = allNum2015,
+           "2016" = allNum2016,
+           "2017" = allNum2017)
+  }, ignoreNULL = FALSE)
   
   # yearPlot
-  output$yearPlot <- renderPlot({
+  output$gradePlot <- renderPlot({
     # Render a barplot
-    ggplot(data=allCounts2016, aes(x=Year1, y=get(input$year))) +
-      geom_bar(stat="identity") 
-    
+    ggplot(data=datasetInput(), aes(x=num_act, y=get(input$grade))) +
+      geom_bar(stat="identity") + 
+      xlab('Number of Activities') + 
+      ylab("Number of Students") +
+      theme_bw() +
+      scale_y_continuous(breaks= pretty_breaks())
   })
   
   # Save User Profile

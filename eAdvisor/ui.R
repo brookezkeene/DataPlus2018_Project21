@@ -174,17 +174,24 @@ body <-
                   
                   # Define the sidebar with one input
                   sidebarPanel(
-                    selectInput("year", "Year:", 
-                                choices=c("Year1", "Year2", "Year3", "Year4")),
+                    selectInput("class", "Admit Year:", 
+                                choices = c("2015", "2016", "2017")),  
+                    selectInput("grade", "Grade:",
+                                choices = c("Freshman Year" = "fresh", 
+                                  "Sophomore Year" = "soph", 
+                                  "Junior Year" = "junior", 
+                                  "Senior Year" = "senior")
+                                ),
+                      
                     hr(),
-                    helpText("Choose the Year.")
-                  ),
-                  
+                    helpText("Choose the Grade"),
+                    actionButton("update", "Update View")
+                ),
                   # Create a spot for the barplot
-                  mainPanel(
-                    plotOutput("yearPlot")  
-                  )
+                mainPanel(
+                  plotOutput("gradePlot")  
                 )
+              )
               )
       ),
       tabItem(tabName = "feedback",
