@@ -21,15 +21,15 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 gs_tags <- gs_key("1Zs8ELNUlX5A1pYOkyrJ38nvK2ZSl_vuh7DAdWhnQ30k")
 programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
 
-# Functions for data wrangling-----------------------------------------
-# getAdmit <- function(stringYear)===Create separate dataframes for id_data from each year
+# functions for data wrangling BELOW-----------------------------------------
+# Function: getAdmit <- function(stringYear)===Create separate dataframes for id_data from each year----
   # input: '2017'
   # output: separate dataframe for students admitted that year
 getAdmit <- function(stringYear){
   return(id_data[id_data['Admit Year'] == stringYear, ])
 }
 
-# countActs <- function(getAdmit)---Create a function to create a dataframe of num of activities
+# Function: countActs <- function(getAdmit)---Create a function to create a dataframe of num of activities----
   # input: Admit + year
   # output: num activities VS grade
 countActs <- function(AdmitYear){
@@ -111,13 +111,11 @@ countActs <- function(AdmitYear){
     # count the num of activities
     counts4[stud] <- count;
   }
-  
-  
   allCounts = do.call(rbind, Map(data.frame, Year1=counts1, Year2=counts2,Year3=counts3,Year4=counts4))
   return(allCounts);
 }
 
-# count_num_fresh <- function(x)---function to reorganize the data returned from countActs
+# Functions: count_num_*grade* <- function(x)---reorganize the data returned from countActs-----
 count_num_fresh <- function(x) {
   #a = as.data.frame(table(unlist(x[,1])))
   count = c(rep(0,7));
@@ -181,7 +179,7 @@ count_num_senior <- function(x) {
   return(count);
 }
 
-# all_num <- function(x)---Create dataframe for "# activities vs. # participants" plot
+# Function: all_num <- function(x)---Create dataframe for "# activities vs. # participants" plot----
 all_num <- function(countActs)
   return(data.frame("num_act" = 0:6, 
                     "fresh" = count_num_fresh(countActs), 
@@ -189,21 +187,14 @@ all_num <- function(countActs)
                     "junior" = count_num_junior(countActs), 
                     "senior" = count_num_senior(countActs)))
 
-# codeToName <- function(code)---Convert code to program name
+# Function: codeToName <- function(code)---Convert code to program name----
 codeToName <- function(code){
   # find the corresponding name of the code
   program_name = prog_list[prog_list$Code == code, ]$CoCurriculars;
   return(program_name);
 }
 
-# abbrToMajor <- function(abbr)---Convert abbreviations to full major name
-abbrToMajor <- function(abbr){
-  major = maj_list[maj_list$Abbreviations == abbr, ]$Majors;
-  return(major)
-}
-# popActs <- function(AdmitYear)
-# input: AdmitYear dataframe
-# ouput: popular activity dataframe by descending order
+# Function: popActs <- function(AdmitYear)---generate popular activity dataframe by descending order----
 popActs <- function(AdmitYear){
   if ( is.data.frame(AdmitYear) && nrow(AdmitYear)==0)
     return(data.frame(Activity=character(0),
@@ -296,7 +287,7 @@ popActs <- function(AdmitYear){
   return(popular);
 }
 
-# Find people with these major (full name), and rank their activities
+# Function: sameMajorPop <- function(major)---Find people with these major (full name), and rank their activities----
 sameMajorPop <- function(major){
   idx = c(); 
 # loop through each row
@@ -315,56 +306,47 @@ sameMajorPop <- function(major){
   return(popActs(people))
 }
 
+# Function(Unused): abbrToMajor <- function(abbr)---Convert abbreviations to full major name----
+abbrToMajor <- function(abbr){
+  major = maj_list[maj_list$Abbreviations == abbr, ]$Majors;
+  return(major)
+}
+# functions for data wrangling ABOVE-----------------------------------------
+# Create dataframes for plotting ---------------
+# allNum****
+  # make dataframes for students information
+getAllNum <- function(matricYear){
+  # Create separate dataframes for id_data from each year, 
+  # then Create dataframes of num of activities,
+  # then make new dataframes from previous dataframe to plot
+  return(all_num(countActs(getAdmit(matricYear))));
+}
 
-# Create some dataframes for plotting ---------------
-# Create separate dataframes for id_data from each year
-Admit2015 <- getAdmit('2015')
-Admit2016 <- getAdmit('2016')
-Admit2017 <- getAdmit('2017')
+getAllNumAll <- function(){
+  return(all_num(countActs(id_data)));
+}
 
-# Create dataframes of num of activities
-allCounts2015 <- countActs(Admit2015)
-allCounts2016 <- countActs(Admit2016)
-allCounts2017 <- countActs(Admit2017)
-allCountsAll <- countActs(id_data)
+# allPop****
+  # make dataframes for popular activities
+getAllPop <- function(matricYear){
+  # Create separate dataframes for id_data from each year, 
+  # then Create dataframes of num of activities' frequencies,
+  return(popActs(getAdmit(matricYear)));
+}
 
-# make new dataframes from allCounts****
-allNum2015 <- all_num(allCounts2015)
-allNum2016 <- all_num(allCounts2016)
-allNum2017 <- all_num(allCounts2017)
-allNumAll <- all_num(allCountsAll)
+getAllPopAll <- function(){
+  return(popActs(id_data));
+}
 
-# all_numAll <- function(){
-#   pp <- cbind(names=c(rownames(allNum2015), rownames(allNum2016),rownames(allNum2017)), 
-#               +             rbind.fill(list(allNum2015, allNum2016, allNum2017)))
-#   allNumAll <- ddply(pp, .(names), function(x) colSums(x[,-1], na.rm = TRUE))
-#   allNumAll$num_act <- 0:6
-# }  
-
-# make dataframes for popular activities
-allPop2015 <- popActs(Admit2015)
-allPop2016 <- popActs(Admit2016)
-allPop2017 <- popActs(Admit2017)
-allPopAll <- popActs(id_data)
-# Rename dataframes to match with input
-# rename_year(allCounts2015)
-# rename_year(allCounts2016)
-# rename_year(allCounts2017)
-
-# Add the x axis, number of activities
-# cbind(num = 1:52, allCounts2015)
-# cbind(num = 0, allCounts2016)
-# cbind(num = 0, allCounts2017)
-
-# To-do: Create a df to get all the program names of id_data and then rank by popularity----------------
-# convert the code to program names
-
-# To-do: use info boxes for stats page-------
 # Content-Based Filtering--------------------------------
 content_filter <- function(netID, progress)
 {
   # Access a Student's Co-Curriculars with their NetID
   # Find row of given netID
+  # Reload the database (now the database is updated)
+  gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
+  id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
+  
   ids <- id_data[c(1)]
   id_row <- which(ids==netID, arr.ind = TRUE)
   if(length(id_row) == 0) {
@@ -469,6 +451,10 @@ content_filter <- function(netID, progress)
 # Collaborative Filtering-------------------------------------
 collaborative_filter <- function(netID, progress)
 {
+  # Reload the database (now the database is updated)
+  gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
+  id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
+  
   ## Function to Calculate Cosine Similarity -- Item vs. Item
   getCosine <- function(x,y) 
   {
@@ -620,20 +606,23 @@ server <- function(input, output, session) {
   # Plot number of activites=====================
   
   # Plot number of activities categorized with admit year
-  datasetInput1 <- reactive( {
+  datasetInput1 <- reactive({
     switch(input$class,
-           "2019" = allNum2015,
-           "2020" = allNum2016,
-           "2021" = allNum2017,
-           "All" = allNumAll)
+           "2019" = getAllNum("2019"),
+           "2020" = getAllNum("2020"),
+           "2021" = getAllNum("2021"),
+           # "2022" = getAllNum("2021"),
+           "All" = getAllNumAll()
+           )
       })
   
   datasetInput2 <- reactive({
     switch(input$classYear,
-         "2019" = allPop2015,
-         "2020" = allPop2016,
-         "2021" = allPop2017,
-         "All" = allPopAll
+         "2019" = getAllPop("2019"),
+         "2020" = getAllPop("2020"),
+         "2021" = getAllPop("2021"),
+         # "2022" = getAllPop("2022"),
+         "All" = getAllPopAll()
          )
   })
   
@@ -642,12 +631,14 @@ server <- function(input, output, session) {
     # Render a barplot
     ggplot(data=datasetInput1(), aes(x=num_act, y=get(input$grade))) +
       geom_bar(stat="identity",fill="steelblue") + 
+      ggtitle("Student Participation in Programs") +
       xlab('Number of Activities') + 
       ylab("Number of Students") +
       theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5)) + 
       geom_text(aes(label=get(input$grade)), vjust=1.6, color="white", size=3.5)+
       scale_y_continuous(breaks= pretty_breaks())+
-      scale_x_continuous(breaks= pretty_breaks())+
+      scale_x_continuous(breaks = c(0:6))+
       geom_vline(data=datasetInput1(), aes(xintercept=num_act%*%get(input$grade)/sum(get(input$grade))),color="red",
                  linetype="dashed")
     })
@@ -731,10 +722,6 @@ server <- function(input, output, session) {
   observeEvent(
     input$recGo,
     {
-      # Load E-Advisor Database Googlesheet
-      gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
-      id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
-      
       # Progress bar
       rec_progress <- shiny::Progress$new()
       on.exit(rec_progress$close())
@@ -758,7 +745,7 @@ server <- function(input, output, session) {
       
       rec_progress$inc(0.1)                      # Progress Bar - 90%
       
-      final_scores <- as.data.frame(matrix(NA, nrow = nrow(content_scores), ncol = 2, dimnames = list(rownames(content_scores),c('Score','Description'))))
+      final_scores <- as.data.frame(matrix(NA, nrow = nrow(content_scores), ncol = 3, dimnames = list(rownames(content_scores),c('Score','Description','Link'))))
       
       # Calculate weights of recommendation systems
       content_percentage = 0.75
@@ -766,30 +753,30 @@ server <- function(input, output, session) {
       for(i in 1:nrow(content_scores)) {
         final_scores[i,1] <- (content_scores[i,1]*content_percentage) + (collaborative_scores[i,1]*collaborative_percentage)
       }
-      
+
       # Organize final scores
       final_scores <- final_scores[order(final_scores[,'Score'], decreasing = TRUE),]
       final_scores <- head(final_scores, n = 10)  # display only top 10 programs
-      
-      final_rows <- rownames(final_scores)
-      
+      final_scores <- tibble::rownames_to_column(final_scores)
+      colnames(final_scores)[1] <- "CoCurriculars"
+      print(final_scores)
       # Get descriptions
       
       for(i in 1:nrow(final_scores)){
-        prog_name <- rownames(final_scores)[i]
+        prog_name <- final_scores[i,1]
         index <- which(prog_list$CoCurriculars %in% prog_name)
-        final_scores[i,2] <- prog_list[index,3]
+        final_scores[i,3] <- prog_list[index,3]
+        final_scores[i,4] <- prog_list[index,4]
       }
-      
-      final_scores <- as.data.frame(final_scores[,-1])
-      row.names(final_scores) <- final_rows
-      
+
       rec_progress$inc(0.1)                      # Progress Bar - 100%
       
       # Render output table
-      output$table <- renderTable(final_scores,
-                                  rownames = TRUE,
-                                  colnames = FALSE)
+      final_scores$Link <- paste0("<a href='",final_scores$Link,"'>",final_scores$CoCurriculars,"</a>")
+      final_scores <- final_scores[,c(3,4)]
+      final_scores <- select(final_scores, CoCurriculars=Link, Description)
+      output$table <- DT::renderDataTable({final_scores},escape = FALSE,rownames = FALSE)
+      
     }
   )
   
@@ -863,7 +850,7 @@ server <- function(input, output, session) {
       prog_sim <- as.data.frame(prog_sim[,prog_index])
       
       # Organize final similarities
-      final_sim <- as.data.frame(matrix(NA, nrow = nrow(prog_sim), ncol = 2, dimnames = list(program_names,c('Score','Description'))))
+      final_sim <- as.data.frame(matrix(NA, nrow = nrow(prog_sim), ncol = 3, dimnames = list(program_names,c('Score','Description','Link'))))
       
       for(i in 1:nrow(prog_sim)) {
         final_sim[i,1] <- prog_sim[i,1]
@@ -871,29 +858,27 @@ server <- function(input, output, session) {
       
       final_sim <- final_sim[order(final_sim[,1], decreasing = TRUE),]
       final_sim <- final_sim[-1,]
-      final_sim <- head(final_sim, n = 10) # display only top 10 programs
+      #final_sim <- head(final_sim, n = 10) # display only top 10 programs
+      final_sim <- tibble::rownames_to_column(final_sim)
+      colnames(final_sim)[1] <- "CoCurriculars"
       
-      final_rows <- rownames(final_sim)
-      
-      # Get descriptions
+      # Get descriptions and links
       
       for(i in 1:nrow(final_sim)) {
-        prog_name <- rownames(final_sim)[i]
+        prog_name <- final_sim[i,1]
         index <- which(prog_list$CoCurriculars %in% prog_name)
-        final_sim[i,2] <- prog_list[index,3]
-        print(prog_list[index,3])
+        final_sim[i,3] <- prog_list[index,3]
+        final_sim[i,4] <- prog_list[index,4]
       }
-      
-      final_sim <- as.data.frame(final_sim[,-1])
-      row.names(final_sim) <- final_rows
       
       rec2_progress$inc(0.25)                    # Progress Bar - 100%
       
       # Render output table
-      output$table2 <- renderTable (final_sim,
-                                    rownames = TRUE,
-                                    colnames = FALSE
-      )
+      final_sim$Link <- paste0("<a href='",final_sim$Link,"'>",final_sim$CoCurriculars,"</a>")
+      final_sim <- final_sim[,c(3,4)]
+      final_sim <- select(final_sim, CoCurriculars=Link, Description)
+      output$table2 <- 
+        DT::renderDataTable({final_sim},escape=FALSE, rownames= FALSE)
     }
   )
   ## Thumbs up/down
