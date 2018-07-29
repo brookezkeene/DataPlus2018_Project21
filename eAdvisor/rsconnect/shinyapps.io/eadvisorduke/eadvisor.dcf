@@ -1,0 +1,12 @@
+name: eadvisor
+title: eAdvisor
+username:
+account: eadvisorduke
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 389706
+bundleId: 1505555
+url: https://eadvisorduke.shinyapps.io/eadvisor/
+when: 1532839688.64341
+asMultiple: FALSE
+asStatic: FALSE
