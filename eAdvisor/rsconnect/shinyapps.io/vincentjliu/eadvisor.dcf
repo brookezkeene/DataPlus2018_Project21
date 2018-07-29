@@ -5,8 +5,6 @@ account: vincentjliu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 388834
-bundleId: 1503026
+bundleId: 1503885
 url: https://vincentjliu.shinyapps.io/eadvisor/
-when: 1532668853.22981
-asMultiple: FALSE
-asStatic: FALSE
+when: 1532709127.28415

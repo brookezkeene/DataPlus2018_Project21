@@ -1,0 +1,13 @@
+name: login
+title: Login
+username:
+account: vincentjliu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 389618
+bundleId: 1504533
+url: https://vincentjliu.shinyapps.io/login/
+when: 1532732237.74527
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData
