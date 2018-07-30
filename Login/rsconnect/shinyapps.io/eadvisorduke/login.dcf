@@ -1,0 +1,13 @@
+name: login
+title: login
+username:
+account: eadvisorduke
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 389702
+bundleId: 1505970
+url: https://eadvisorduke.shinyapps.io/login/
+when: 1532880162.35092
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: www/duke.jpg|www/duke2.jpg|www/duke3.jpg|www/duke4.jpg
