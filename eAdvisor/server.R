@@ -1,6 +1,7 @@
 # Load libraries ----------------------------------------------------------
 library(shiny)
 library(shinyjs)
+library(shinydashboard)
 library(tidyverse)
 library(plyr)
 library(dplyr)
@@ -11,7 +12,7 @@ library(httr)
 library(tm)
 library(DT)
 
-# Load Data from Googlesheets ---------------------------------------------
+## Load Data from Googlesheets --------------------------------------------
 # E-Advisor Database
 gs_eadvisor <-
   gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
@@ -22,9 +23,13 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 # DukeGroups_Edited
 gs_tags <- gs_key("1Zs8ELNUlX5A1pYOkyrJ38nvK2ZSl_vuh7DAdWhnQ30k")
 programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
+# Feedback
+gs_feedback <- gs_key("1ZAYh-PfYPzbNKtqWKGZ7ccPPXbZiPGmvnxAEsvFo5jo")
+rating_df <- data.frame(gs_read_csv(gs_feedback, col_names = TRUE))
+rating <- strtoi(rating_df[1,1])
 
 
-# functions for data wrangling BELOW-----------------------------------------
+## Functions for Data Wrangling (below)------------------------------------
 # Function: getAdmit <- function(stringYear)===Create separate dataframes for id_data from each year----
 # input: '2017'
 # output: separate dataframe for students admitted that year
@@ -444,8 +449,9 @@ abbrToMajor <- function(abbr) {
   
   return(major)
 }
-# functions for data wrangling ABOVE-----------------------------------------
-# Create dataframes for plotting ---------------
+## Functions for Data Wrangling (above) -----------------------------------
+
+## Create Data Frames for Stats Page ---------------
 # allNum****
 # make dataframes for students information
 getAllNum <- function(matricYear) {
@@ -475,7 +481,7 @@ getAllPopAll <- function() {
   
 }
 
-# Content-Based Filtering--------------------------------
+# Content-Based Filtering -------------------------------------------------
 content_filter <- function(netID, progress)
 {
   # Access a Student's Co-Curriculars with their NetID
@@ -598,7 +604,7 @@ content_filter <- function(netID, progress)
   return(stud_predictions)
 }
 
-# Collaborative Filtering-------------------------------------
+# Collaborative Filtering -------------------------------------------------
 collaborative_filter <- function(netID, progress)
 {
   # Reload the database (now the database is updated)
@@ -777,7 +783,7 @@ collaborative_filter <- function(netID, progress)
   
   return(stud_predictions)
 }
-# Server & Hybrid Rec & Plot--------------------------------------------
+# Server & Hybrid Rec & Plot ----------------------------------------------
 server <- function(input, output, session) {
   # Plot number of activites=====================
   
@@ -850,75 +856,74 @@ server <- function(input, output, session) {
       sameMajorPop(input$majorPop)
     }, rownames = FALSE)
   
-  # Save User Profile
-  observeEvent(input$submit,
-               {
-                 # Progress Bar
-                 prof_progress <- shiny::Progress$new()
-                 on.exit(prof_progress$close())
-                 
-                 prof_progress$set(message = "Saving Profile...", value = 0)
-                 
-                 # Check if user filled all fields
-                 if (is_empty(input$major) || 
-                     is.null(input$year)   ||
-                     is_empty(input$yr1prog) ||
-                     is_empty(input$yr2prog) ||
-                     is_empty(input$yr3prog) ||
-                     is_empty(input$yr4prog)) {
-                   session$sendCustomMessage("check", "Please fill out your information for all fields!")
-                   return()
-                 }
-                 # Check if user already has a profile
-                 ids <- id_data[c(1)]
-                 id_row <-
-                   which(ids == netid, arr.ind = TRUE)
-                 if (length(id_row) != 0) {
-                   session$sendCustomMessage("exists", "It appears that you are already in our system.")
-                   # Clear input cells
-                   reset("major")
-                   reset("year")
-                   reset("yr1prog")
-                   reset("yr2prog")
-                   reset("yr3prog")
-                   reset("yr4prog")
-                   return()
-                 }
-                 
-                 prof_progress$inc(0.25)                    # Progress Bar - 25%
-                 Sys.sleep(0.1)
-                 
-                 # Pre-process variables with multiple entries
-                 majs <- paste(input$major, collapse = ", ")
-                 yr1 <- paste(input$yr1prog, collapse = ", ")
-                 yr2 <- paste(input$yr2prog, collapse = ", ")
-                 yr3 <- paste(input$yr3prog, collapse = ", ")
-                 yr4 <- paste(input$yr4prog, collapse = ", ")
-                 
-                 prof_progress$inc(0.25)                    # Progress Bar - 50%
-                 Sys.sleep(0.1)
-                 
-                 # Add row to google sheet
-                 gs_add_row(gs_eadvisor,
-                            input = c(netid, majs, input$year, yr1, yr2, yr3, yr4))
-                 
-                 prof_progress$inc(0.25)                    # Progress Bar - 75%
-                 Sys.sleep(0.1)
-                 
-                 # Clear input cells
-                 reset("major")
-                 reset("year")
-                 reset("yr1prog")
-                 reset("yr2prog")
-                 reset("yr3prog")
-                 reset("yr4prog")
-                 
-                 prof_progress$inc(0.25)                    # Progress Bar - 100%
-                 Sys.sleep(0.1)
-                 
-                 # Send user a message
-                 session$sendCustomMessage("thanks", "Thank you for submitting your profile!")
-               })
+  ## Save User Profile
+  observeEvent(
+    input$submit,
+    {
+      # Progress Bar
+      prof_progress <- shiny::Progress$new()
+      on.exit(prof_progress$close())
+      
+      prof_progress$set(message = "Saving Profile...", value = 0)
+      
+      # Check if user filled all fields
+      if(is.null(input$netid)||is_empty(input$major)||is.null(input$year)
+         ||is_empty(input$yr1prog)||is_empty(input$yr2prog)||is_empty(input$yr3prog)||is_empty(input$yr4prog)) {
+        session$sendCustomMessage("check", "Please fill out your information for all fields!")
+        return()
+      }
+      # Check if user already has a profile
+      ids <- id_data[c(1)]
+      id_row <- which(ids==tolower(input$netid), arr.ind = TRUE)
+      if(length(id_row) != 0) {
+        session$sendCustomMessage("exists", "It appears that you are already in our system.")
+        # Clear input cells
+        reset("netid")
+        reset("major")
+        reset("year")
+        reset("yr1prog")
+        reset("yr2prog")
+        reset("yr3prog")
+        reset("yr4prog")
+        return()
+      }
+      
+      prof_progress$inc(0.25)                    # Progress Bar - 25%
+      Sys.sleep(0.1)
+      
+      # Pre-process variables with multiple entries
+      majs <- paste(input$major, collapse = ", ")
+      yr1 <- paste(input$yr1prog, collapse = ", ")
+      yr2 <- paste(input$yr2prog, collapse = ", ")
+      yr3 <- paste(input$yr3prog, collapse = ", ")
+      yr4 <- paste(input$yr4prog, collapse = ", ")
+      
+      prof_progress$inc(0.25)                    # Progress Bar - 50%
+      Sys.sleep(0.1)
+      
+      # Add row to google sheet
+      gs_add_row(gs_eadvisor, 
+                 input = c(tolower(input$netid), majs, input$year, yr1, yr2, yr3, yr4))
+      
+      prof_progress$inc(0.25)                    # Progress Bar - 75%
+      Sys.sleep(0.1)
+      
+      # Clear input cells
+      reset("netid")
+      reset("major")
+      reset("year")
+      reset("yr1prog")
+      reset("yr2prog")
+      reset("yr3prog")
+      reset("yr4prog")
+      
+      prof_progress$inc(0.25)                    # Progress Bar - 100%
+      Sys.sleep(0.1)
+      
+      # Send user a message
+      session$sendCustomMessage("thanks", "Thank you for submitting your profile!")
+    }
+  )
   
   ## Widget - Co-Curricular Recommender
   # Hybrid Recommender - Combination of ContentBasedRec.R and CollaborativeRec.R
@@ -1006,136 +1011,188 @@ server <- function(input, output, session) {
   
   ## Widget - Find Similar Programs
   # Jaccard similarity calculated with JaccardRec.R
-  observeEvent(input$recGo2,
-               {
-                 # Progress bar
-                 rec2_progress <- shiny::Progress$new()
-                 on.exit(rec2_progress$close())
-                 
-                 rec2_progress$set(message = "Loading Recommendations...", value = 0)
-                 
-                 # Match program code to actual co-curricular name
-                 program_names = programs_df[c(1)]          # Column of Program Names
-                 program_names <- program_names[-1,]
-                 new_programs_df <-
-                   programs_df[-1,-1]      # Remove column of program names
-                 prog_num <-
-                   nrow(new_programs_df)          # Number of total programs
-                 tag_num <-
-                   ncol(new_programs_df)           # Number of total tags
-                 
-                 # Find index of input program
-                 index <-
-                   which(prog_list$Code %in% strtoi(input$recProg))
-                 name <- prog_list$CoCurriculars[index]
-                 prog_index <- which(program_names %in% name)
-                 
-                 ## JaccardRec.R
-                 # Jaccard Function
-                 jaccard <- function(x, y) {
-                   inter_cardinality <- length(intersect(x, y))
-                   union_cardinality <- length(union(x, y))
-                   return(inter_cardinality / union_cardinality)
-                 }
-                 
-                 # Change 1s to a new number, unique to tag
-                 for (r in 1:prog_num) {
-                   for (c in 1:tag_num) {
-                     if (new_programs_df[r, c] == 1) {
-                       new_programs_df[r, c] <-
-                         c            # Sets column number as unique tag number
-                     }
-                   }
-                 }
-                 
-                 rec2_progress$inc(0.25)                    # Progress Bar - 25%
-                 
-                 # Create new list of vectors containing programs' unique tag numbers
-                 prog_vecs <- list()
-                 for (r in 1:prog_num) {
-                   temp_vec <- vector(mode = 'numeric', length = 0)
-                   for (c in 1:tag_num) {
-                     if (new_programs_df[r, c] != 0) {
-                       temp_vec <- append(temp_vec, new_programs_df[r, c])
-                     }
-                   }
-                   prog_vecs[[r]] <-
-                     temp_vec               # Adds vector to list
-                 }
-                 
-                 rec2_progress$inc(0.25)                    # Progress Bar - 50%
-                 
-                 # Create new data frame containing jaccard similarity for any 2 programs
-                 prog_sim <-
-                   matrix(NA, nrow = prog_num, ncol = prog_num)
-                 rownames(prog_sim) <- program_names
-                 for (r in 1:prog_num) {
-                   for (c in 1:prog_num) {
-                     prog_sim[r, c] <- jaccard(prog_vecs[[r]], prog_vecs[[c]])
-                   }
-                 }
-                 
-                 rec2_progress$inc(0.25)                    # Progress Bar - 75%
-                 
-                 prog_sim <- as.data.frame(prog_sim[, prog_index])
-                 
-                 # Organize final similarities
-                 final_sim <-
-                   as.data.frame(matrix(
-                     NA,
-                     nrow = nrow(prog_sim),
-                     ncol = 3,
-                     dimnames = list(program_names, c('Score', 'Description', 'Link'))
-                   ))
-                 
-                 for (i in 1:nrow(prog_sim)) {
-                   final_sim[i, 1] <- prog_sim[i, 1]
-                 }
-                 
-                 final_sim <-
-                   final_sim[order(final_sim[, 1], decreasing = TRUE),]
-                 final_sim <- final_sim[-1,]
-                 #final_sim <- head(final_sim, n = 10) # display only top 10 programs
-                 final_sim <- tibble::rownames_to_column(final_sim)
-                 colnames(final_sim)[1] <- "CoCurriculars"
-                 
-                 # Get descriptions and links
-                 
-                 for (i in 1:nrow(final_sim)) {
-                   prog_name <- final_sim[i, 1]
-                   index <-
-                     which(prog_list$CoCurriculars %in% prog_name)
-                   final_sim[i, 3] <- prog_list[index, 3]
-                   final_sim[i, 4] <- prog_list[index, 4]
-                 }
-                 
-                 rec2_progress$inc(0.25)                    # Progress Bar - 100%
-                 
-                 # Render output table
-                 final_sim$Link <-
-                   paste0(
-                     "<a href='",
-                     final_sim$Link,
-                     "', target=_blank>",
-                     final_sim$CoCurriculars,
-                     "</a>"
-                   )
-                 final_sim <- final_sim[, c(3, 4)]
-                 final_sim <-
-                   select(final_sim, CoCurriculars = Link, Description)
-                 output$table2 <-
-                   DT::renderDataTable({
-                     final_sim
-                   }, escape = FALSE, rownames = FALSE)
-               })
-  ## Thumbs up/down
-  observeEvent(input$up, {
-    print('hi')
-  })
+  observeEvent(
+    input$recGo2,
+    {
+      # Progress bar
+      rec2_progress <- shiny::Progress$new()
+      on.exit(rec2_progress$close())
+      
+      rec2_progress$set(message = "Loading Recommendations...", value = 0)
+      
+      # Match program code to actual co-curricular name
+      program_names = programs_df[c(1)]          # Column of Program Names
+      program_names <- program_names[-1,]
+      new_programs_df <- programs_df[-1,-1]      # Remove column of program names
+      prog_num <- nrow(new_programs_df)          # Number of total programs
+      tag_num <- ncol(new_programs_df)           # Number of total tags
+      
+      # Find index of input program
+      index <- which(prog_list$Code %in% strtoi(input$recProg))
+      name <- prog_list$CoCurriculars[index]
+      prog_index <- which(program_names %in% name)
+      
+      ## JaccardRec.R
+      # Jaccard Function
+      jaccard <- function(x, y) {
+        inter_cardinality <- length(intersect(x, y))
+        union_cardinality <- length(union(x, y))
+        return(inter_cardinality/union_cardinality)
+      }
+      
+      # Change 1s to a new number, unique to tag
+      for(r in 1:prog_num) {
+        for(c in 1:tag_num) {
+          if(new_programs_df[r,c] == 1) {
+            new_programs_df[r,c] <- c            # Sets column number as unique tag number
+          }
+        }
+      }
+      
+      rec2_progress$inc(0.25)                    # Progress Bar - 25%
+      
+      # Create new list of vectors containing programs' unique tag numbers
+      prog_vecs <- list()
+      for(r in 1:prog_num) {
+        temp_vec <- vector(mode = 'numeric', length = 0)
+        for(c in 1:tag_num) {
+          if(new_programs_df[r,c] != 0) {
+            temp_vec <- append(temp_vec, new_programs_df[r,c])
+          }
+        }
+        prog_vecs[[r]] <- temp_vec               # Adds vector to list
+      }
+      
+      rec2_progress$inc(0.25)                    # Progress Bar - 50%
+      
+      # Create new data frame containing jaccard similarity for any 2 programs
+      prog_sim <- matrix(NA, nrow = prog_num, ncol = prog_num)
+      rownames(prog_sim) <- program_names
+      for(r in 1:prog_num) {
+        for(c in 1:prog_num) {
+          prog_sim[r,c] <- jaccard(prog_vecs[[r]], prog_vecs[[c]])
+        }
+      }
+      
+      rec2_progress$inc(0.25)                    # Progress Bar - 75%
+      
+      prog_sim <- as.data.frame(prog_sim[,prog_index])
+      
+      # Organize final similarities
+      final_sim <- as.data.frame(matrix(NA, nrow = nrow(prog_sim), ncol = 3, dimnames = list(program_names,c('Score','Description','Link'))))
+      
+      for(i in 1:nrow(prog_sim)) {
+        final_sim[i,1] <- prog_sim[i,1]
+      }
+      
+      final_sim <- final_sim[order(final_sim[,1], decreasing = TRUE),]
+      final_sim <- final_sim[-1,]
+      #final_sim <- head(final_sim, n = 10) # display only top 10 programs
+      final_sim <- tibble::rownames_to_column(final_sim)
+      colnames(final_sim)[1] <- "CoCurriculars"
+      
+      # Get descriptions and links
+      
+      for(i in 1:nrow(final_sim)) {
+        prog_name <- final_sim[i,1]
+        index <- which(prog_list$CoCurriculars %in% prog_name)
+        final_sim[i,3] <- prog_list[index,3]
+        final_sim[i,4] <- prog_list[index,4]
+      }
+      
+      rec2_progress$inc(0.25)                    # Progress Bar - 100%
+      
+      # Render output table
+      final_sim$Link <- paste0("<a href='",final_sim$Link,"'>",final_sim$CoCurriculars,"</a>")
+      final_sim <- final_sim[,c(3,4)]
+      final_sim <- select(final_sim, CoCurriculars=Link, Description)
+      output$table2 <- 
+        DT::renderDataTable({final_sim},escape=FALSE, rownames= FALSE)
+    }
+  )
   
-  observeEvent(input$down, {
-    print('bye')
+  ## Feedback Page --------------------------------------------------------
+  # New Co-Curricular
+  observeEvent(
+    input$subNewCo, {
+      # Add row to google sheet
+      gs_add_row(gs_feedback, 
+                 input = c("New Co-Curricular", input$newCo, input$newDesc, input$newCoID))
+      
+      # Clear input cells
+      reset("newCoID")
+      reset("newCo")
+      reset("newDesc")
+    }
+  )
+  
+  # Comment
+  observeEvent(
+    input$subCom, {
+      gs_add_row(gs_feedback,
+                 input = c("Comment", input$comment, "", input$comID))
+      
+      # Clear input cells
+      reset("comID")
+      reset("comment")
+    }
+  )
+  
+  # Thumbs Up/Down
+  observeEvent(
+    input$up, {
+      shinyjs::disable("up")
+      shinyjs::disable("down")
+
+      if(rating != 100) {
+        rating <- rating + 1
+        gs_edit_cells(gs_feedback, input = rating, anchor = "A2")
+      }
+
+      gs_add_row(gs_feedback,
+                 input = c("Rating", "Thumbs Up", ""))
+      
+      output$infoBox1 <- renderInfoBox({
+        color <- 'green'
+        if(rating < 50) {
+          color <- 'red'
+        }
+        infoBox(value = rating, title = 'Approval Rating', color = color)
+      })
+    }
+  )
+  
+  observeEvent(
+    input$down, {
+      shinyjs::disable("up")
+      shinyjs::disable("down")
+
+      if(rating != 0) {
+        rating <- rating - 1
+        gs_edit_cells(gs_feedback, input = rating, anchor = "A2")
+      }
+
+      gs_add_row(gs_feedback,
+                 input = c("Rating", "Thumbs Down", ""))
+      
+      output$infoBox1 <- renderInfoBox({
+        color <- 'green'
+        if(rating < 50) {
+          color <- 'red'
+        }
+        infoBox(value = rating, title = 'Approval Rating', color = color)
+      })
+    }
+  )
+  
+  output$infoBox1 <- renderInfoBox({
+    color <- 'green'
+    if(rating < 50) {
+      color <- 'red'
+    }
+    infoBox(value = rating, title = 'Approval Rating', color = color)
   })
+
 }
 
 shinyServer(server)

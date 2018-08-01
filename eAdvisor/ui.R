@@ -30,6 +30,8 @@ js_exists <-
 js_record <-
   'Shiny.addCustomMessageHandler("noRecord", function(message) {alert(message);});'
 
+#rating = rating
+
 # UI-Header---------------------------------------------------
 
 header <-
@@ -328,62 +330,69 @@ body <-
                    mainPanel(plotOutput("gradePlot")))
         )
       ),
+      tabItem(tabName = "feedback",
+              h2("Feedback"),
+              p("Please let us know what you thought of our website! We are currently in the testing stage 
+                of this project and would appreciate any and all feedback. If you believe we are missing a 
+                co-curricular program or activity, please fill out the box below. If you would like to
+                help us by providing more information about an activity, please fill out the following",
+                a(" survey", href = "https://goo.gl/forms/BB34EWQfGJofHkyo1"), ". Additionally, please 
+                indicate whether you had an overall positive or negative experience with our website by using
+                the thumbs up and down icons below."),
+              p("All feedback submitted on this page is anonymous unless you provide your netID in the boxes below. 
+                Thank you for helping us improve our website!"),
+              
+              # New Co-Curricular Box
+              box(title = div("Suggest a New Co-Curricular", style="color:white"),
+                  status = "primary", width = 12, solidHeader = TRUE, 
+                  collapsible = TRUE, collapsed = TRUE,
+                  helpText("If we are missing a co-curricular program, let us know! Please enter the information below."),
+                  textInput("newCoID", label = h4("NetID"), placeholder = "Optional"),
+                  textInput("newCo", label = h4("Enter the Co-Curricular Program or Activity"), placeholder = "Ex. Co-Curricular Name"),
+                  textInput("newDesc", label = h4("Enter a Brief Description for this Co-Curricular"), placeholder = "Ex. This co-curricular does..." ),
+                  br(),
+                  div(actionButton("subNewCo", "Submit"), style="padding:10px 18px 12px; float:right")
+              ),
+              
+              # Comment Box
+              box(title = div("Leave a Comment", style="color:white"),
+                  status = "primary", width = 12, solidHeader = TRUE, 
+                  collapsible = TRUE, collapsed = TRUE,
+                  helpText("Let us know how we're doing! Leave us a comment below."),
+                  textInput("comID", label = h4("NetID"), placeholder = "Optional"),
+                  textInput("comment", label = h4("Comments"), placeholder = "Ex. This website rocks!"),
+                  br(),
+                  div(actionButton("subCom", "Submit"), style="padding:10px 18px 12px; float:right")
+              ),
+              
+              # Thumbs Up/Down
+              fluidRow(
+                actionButton("up", label = icon("thumbs-up"),
+                             style = 'color: green;
+                             position: relative;
+                             left: 20px;
+                             display:block;
+                             height: 50px;
+                             width: 50px;
+                             border-radius: 50%;
+                             border: 2px solid green;'),
+                actionButton("down", label = icon("thumbs-down"),
+                             style = 'color: red;
+                             position: relative;
+                             top: -50px;
+                             left: 80px;
+                             display:block;
+                             height: 50px;
+                             width: 50px;
+                             border-radius: 50%;
+                             border: 2px solid red;')
+                )
+                ),
       tabItem(tabName = "pathways", 
               fluidPage(
-                h2("Student Pathways"))),
-      tabItem(
-        tabName = "feedback",
-        fluidPage(
-          titlePanel("Feedback"),
-          p(
-            "Please let us know what you thought of our website! We are currently in the testing stage
-            of this project and would appreciate any and all feedback. If you believe we are missing a
-            co-curricular program or activity, please fill out the box below. If you would like to
-            help us by providing more information about an activity, please fill out the following",
-            a(" survey", href = "https://goo.gl/forms/BB34EWQfGJofHkyo1"),
-            "."
-          ),
-          p(
-            "Also, please indicate whether you like or dislike our website using the thumbs up and down
-            voting method below! Thank you!"
-          ),
-          textInput('newCo', "Suggest a New Co-Curricular", width = '400px'),
-          textAreaInput(
-            'comment',
-            "Leave a Comment",
-            width = '400px',
-            height = '250px',
-            resize = "both"
-          ),
-          fluidRow(
-            actionButton(
-              "up",
-              label = icon("thumbs-up"),
-              style = 'color: green;
-              position: relative;
-              left: 20px;
-              display:block;
-              height: 50px;
-              width: 50px;
-              border-radius: 50%;
-              border: 2px solid green;'
-            ),
-            actionButton(
-              "down",
-              label = icon("thumbs-down"),
-              style = 'color: red;
-              position: relative;
-              top: -50px;
-              left: 80px;
-              display:block;
-              height: 50px;
-              width: 50px;
-              border-radius: 50%;
-              border: 2px solid red;'
-            )
-            )
-            )
-            ),
+                h2("Student Pathways")
+              )
+             ),
       tabItem(tabName = "about",
               fluidPage(
                 titlePanel("About Us"),
