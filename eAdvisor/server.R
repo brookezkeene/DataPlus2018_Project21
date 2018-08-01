@@ -1,6 +1,7 @@
 # Load libraries ----------------------------------------------------------
 library(shiny)
 library(shinyjs)
+library(shinydashboard)
 library(tidyverse)
 library(plyr)
 library(dplyr)
@@ -10,7 +11,7 @@ library(googlesheets)
 library(tm)
 library(DT)
 
-# Load Data from Googlesheets ---------------------------------------------
+## Load Data from Googlesheets --------------------------------------------
 # E-Advisor Database
 gs_eadvisor <- gs_key("1lnZaPj22rIo0WYfKNAWerEpRDuh4ByI9tZSVbtMT4iw")
 id_data <- gs_read_csv(gs_eadvisor, col_names = TRUE)
@@ -20,8 +21,12 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 # DukeGroups_Edited
 gs_tags <- gs_key("1Zs8ELNUlX5A1pYOkyrJ38nvK2ZSl_vuh7DAdWhnQ30k")
 programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
+# Feedback
+gs_feedback <- gs_key("1ZAYh-PfYPzbNKtqWKGZ7ccPPXbZiPGmvnxAEsvFo5jo")
+rating_df <- data.frame(gs_read_csv(gs_feedback, col_names = TRUE))
+rating <- strtoi(rating_df[1,1])
 
-# functions for data wrangling BELOW-----------------------------------------
+## Functions for Data Wrangling (below)------------------------------------
 # Function: getAdmit <- function(stringYear)===Create separate dataframes for id_data from each year----
   # input: '2017'
   # output: separate dataframe for students admitted that year
@@ -311,8 +316,9 @@ abbrToMajor <- function(abbr){
   major = maj_list[maj_list$Abbreviations == abbr, ]$Majors;
   return(major)
 }
-# functions for data wrangling ABOVE-----------------------------------------
-# Create dataframes for plotting ---------------
+## Functions for Data Wrangling (above) -----------------------------------
+
+## Create Data Frames for Stats Page ---------------
 # allNum****
   # make dataframes for students information
 getAllNum <- function(matricYear){
@@ -338,7 +344,7 @@ getAllPopAll <- function(){
   return(popActs(id_data));
 }
 
-# Content-Based Filtering--------------------------------
+# Content-Based Filtering -------------------------------------------------
 content_filter <- function(netID, progress)
 {
   # Access a Student's Co-Curriculars with their NetID
@@ -448,7 +454,7 @@ content_filter <- function(netID, progress)
   return(stud_predictions)
 }
 
-# Collaborative Filtering-------------------------------------
+# Collaborative Filtering -------------------------------------------------
 collaborative_filter <- function(netID, progress)
 {
   # Reload the database (now the database is updated)
@@ -601,7 +607,7 @@ collaborative_filter <- function(netID, progress)
   
   return(stud_predictions)
 }
-# Server & Hybrid Rec & Plot--------------------------------------------
+# Server & Hybrid Rec & Plot ----------------------------------------------
 server <- function(input, output, session) {
   # Plot number of activites=====================
   
@@ -648,7 +654,7 @@ server <- function(input, output, session) {
   # majorTable
   output$majorTable <- DT::renderDataTable({sameMajorPop(input$majorPop)},rownames= FALSE)
   
-  # Save User Profile
+  ## Save User Profile
   observeEvent(
     input$submit,
     {
@@ -881,18 +887,89 @@ server <- function(input, output, session) {
         DT::renderDataTable({final_sim},escape=FALSE, rownames= FALSE)
     }
   )
-  ## Thumbs up/down
+  
+  ## Feedback Page --------------------------------------------------------
+  # New Co-Curricular
+  observeEvent(
+    input$subNewCo, {
+      # Add row to google sheet
+      gs_add_row(gs_feedback, 
+                 input = c("New Co-Curricular", input$newCo, input$newDesc, input$newCoID))
+      
+      # Clear input cells
+      reset("newCoID")
+      reset("newCo")
+      reset("newDesc")
+    }
+  )
+  
+  # Comment
+  observeEvent(
+    input$subCom, {
+      gs_add_row(gs_feedback,
+                 input = c("Comment", input$comment, "", input$comID))
+      
+      # Clear input cells
+      reset("comID")
+      reset("comment")
+    }
+  )
+  
+  # Thumbs Up/Down
   observeEvent(
     input$up, {
-      print('hi')
+      shinyjs::disable("up")
+      shinyjs::disable("down")
+
+      if(rating != 100) {
+        rating <- rating + 1
+        gs_edit_cells(gs_feedback, input = rating, anchor = "A2")
+      }
+
+      gs_add_row(gs_feedback,
+                 input = c("Rating", "Thumbs Up", ""))
+      
+      output$infoBox1 <- renderInfoBox({
+        color <- 'green'
+        if(rating < 50) {
+          color <- 'red'
+        }
+        infoBox(value = rating, title = 'Approval Rating', color = color)
+      })
     }
   )
   
   observeEvent(
     input$down, {
-      print('bye')
+      shinyjs::disable("up")
+      shinyjs::disable("down")
+
+      if(rating != 0) {
+        rating <- rating - 1
+        gs_edit_cells(gs_feedback, input = rating, anchor = "A2")
+      }
+
+      gs_add_row(gs_feedback,
+                 input = c("Rating", "Thumbs Down", ""))
+      
+      output$infoBox1 <- renderInfoBox({
+        color <- 'green'
+        if(rating < 50) {
+          color <- 'red'
+        }
+        infoBox(value = rating, title = 'Approval Rating', color = color)
+      })
     }
   )
+  
+  output$infoBox1 <- renderInfoBox({
+    color <- 'green'
+    if(rating < 50) {
+      color <- 'red'
+    }
+    infoBox(value = rating, title = 'Approval Rating', color = color)
+  })
+  
 }
 
 shinyServer(server)
