@@ -23,6 +23,11 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 # DukeGroups_Edited
 gs_tags <- gs_key("1Zs8ELNUlX5A1pYOkyrJ38nvK2ZSl_vuh7DAdWhnQ30k")
 programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
+# Tag List
+gs_all_tags <- gs_url("https://docs.google.com/spreadsheets/d/1ilW6nwum8gORGyIXC9drVg43TA6UHOw9XfRxQnLu5vc/edit#gid=0")
+tag_list <- gs_read_csv(gs_all_tags, col_names = TRUE)
+tag_choice <- as.list(tag_list$Code)
+names(tag_choice) <- tag_list$Tags
 # Feedback
 gs_feedback <- gs_key("1ZAYh-PfYPzbNKtqWKGZ7ccPPXbZiPGmvnxAEsvFo5jo")
 rating_df <- data.frame(gs_read_csv(gs_feedback, col_names = TRUE))
@@ -1108,6 +1113,103 @@ server <- function(input, output, session) {
       final_sim <- select(final_sim, CoCurriculars=Link, Description)
       output$table2 <- 
         DT::renderDataTable({final_sim},escape=FALSE, rownames= FALSE)
+    }
+  )
+  
+  # Widget find recommendations for new students based on interests
+  # Utilizes the same code for content-based filtering but with a fake activity instead
+  observeEvent(
+    input$recGo3,
+    {
+      # Progress bar
+      rec3_progress <- shiny::Progress$new()
+      on.exit(rec3_progress$close())
+      rec3_progress$set(message = "Loading Recommendations...", value = 0)
+      
+      #pts all of their interests into a list
+      interests <- paste(input$checkGroup, collapse = ", ")
+      selected_interests <- as.data.frame(matrix(interests, nrow = 1, ncol = 1))
+      
+      # fake_program to be used in the interest-based recommender tabItem = newStudents
+      fake_program <- as.data.frame(matrix(0, nrow = 1, ncol = length(tag_list[[1]])))
+      colnames(fake_program) = names(tag_choice)
+      
+      for(i in 1:length(fake_program[1,])) {
+        if(grepl(as.character(i), as.character(selected_interests[1,1]), fixed = TRUE)) {
+          fake_program[1,i] <- 1
+        }
+      }
+      
+      # Load Data from Excel (in csv format)
+      gs_tags <- gs_title("DukeGroups_Edited")
+      programs_df <- data.frame(gs_read_csv(gs_tags, col_names = TRUE))
+      
+      rec3_progress$inc(0.25)                    # Progress Bar - 25%
+      
+      program_names = programs_df[c(1)]              # Column of Program Names
+      program_names <- program_names[-1,]
+      programs_df <- programs_df[-1,-1]              # Remove column of program names
+      
+      # Determine DF and IDF vectors
+      DF = colSums(programs_df)                      # Document Frequency 
+      total_tags = rowSums(programs_df)              # Total number of tags for a program
+      N = NROW(program_names)                        # Total number of documents
+      IDF = log10(N/DF)                              # Inverse Document Frequency
+      
+      # Normalize Data
+      norm_prog = sweep(programs_df, 1, sqrt(total_tags), "/")
+      
+      
+      # Create matrix of student profiles
+      stud_profiles = fake_program
+      
+      # Create matrix of weighted scores of tags for each program
+      weighted_scores = t(apply(norm_prog, 1, function(x){x*IDF}))
+      
+      # Create matrix of student predictions based on weighted scores
+      stud_predictions = matrix(NA, nrow = nrow(programs_df), ncol = 1)
+      row.names(stud_predictions) <- program_names
+      for(r in 1:nrow(programs_df)) {
+        stud_predictions[r,1] = sum(stud_profiles[1,]*weighted_scores[r,])
+      }
+      
+      rec3_progress$inc(0.25)                    # Progress Bar - 50%
+      
+      # Organize the student predictions
+      stud_predictions <-
+        stud_predictions[order(stud_predictions[, 1], decreasing = TRUE),]
+      #final_scores <- head(final_scores, n = 10)  # display only top 10 programs
+      stud_predictions <-
+        tibble::rownames_to_column(as.data.frame(stud_predictions))
+      colnames(stud_predictions)[1] <- "CoCurriculars"
+      # Get descriptions
+      
+      for (i in 1:nrow(stud_predictions)) {
+        prog_name <- stud_predictions[i, 1]
+        index <-
+          which(prog_list$CoCurriculars %in% prog_name)
+        stud_predictions[i, 3] <- prog_list[index, 3]
+        stud_predictions[i, 4] <- prog_list[index, 4]
+      }
+      
+      rec3_progress$inc(0.25)                    # Progress Bar - 75%
+      
+      # Render output table
+      stud_predictions$Link <-
+        paste0("<a href='",
+               stud_predictions$Link,
+               "', target=_blank>",
+               stud_predictions$CoCurriculars,
+               "</a>")
+      stud_predictions <- stud_predictions[, c(3, 4)]
+      stud_predictions <-
+        select(stud_predictions, CoCurriculars = Link, Description)
+      output$table3 <-
+        DT::renderDataTable({
+          stud_predictions
+        }, escape = FALSE, rownames = FALSE)
+      
+      rec3_progress$inc(0.25)                    # Progress Bar - 100%
     }
   )
   
