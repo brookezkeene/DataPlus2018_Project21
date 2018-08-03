@@ -801,7 +801,7 @@ server <- function(input, output, session) {
       "2019" = getAllNum("2019"),
       "2020" = getAllNum("2020"),
       "2021" = getAllNum("2021"),
-      # "2022" = getAllNum("2021"),
+      # "2022" = getAllNum("2022"),
       "All" = getAllNumAll()
     )
   })
