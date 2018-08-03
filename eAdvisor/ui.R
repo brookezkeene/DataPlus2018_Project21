@@ -20,6 +20,12 @@ prog_list <- gs_read_csv(gs_prog, col_names = TRUE)
 prog_choice <- as.list(prog_list$Code)
 names(prog_choice) <- prog_list$CoCurriculars
 
+# Create a list of all tags
+gs_all_tags <- gs_url("https://docs.google.com/spreadsheets/d/1ilW6nwum8gORGyIXC9drVg43TA6UHOw9XfRxQnLu5vc/edit#gid=0")
+tag_list <- gs_read_csv(gs_all_tags, col_names = TRUE)
+tag_choice <- as.list(tag_list$Code)
+names(tag_choice) <- tag_list$Tags
+
 # Pop-up Messages
 js_thanks <-
   'Shiny.addCustomMessageHandler("thanks", function(message) {alert(message);});'
@@ -60,6 +66,13 @@ sidebar <-
         "Find Similar Co-Curriculars",
         tabName = "jaccard",
         icon = icon("list"),
+        badgeLabel = "new",
+        badgeColor = "green"
+      ),
+      menuItem(
+        "New Students",
+        tabName = "newStudents",
+        icon = icon("graduation-cap"),
         badgeLabel = "new",
         badgeColor = "green"
       ),
@@ -279,6 +292,32 @@ body <-
                   collapsed = FALSE
                 )
               )
+      ),
+      tabItem(tabName = "newStudents",
+              h2("New Students"),
+              p("If you haven't participated in any co-curricular from our list, you can fill out your 
+                general interests below to receive recommendations."),
+              useShinyjs(),
+              
+              # Interest Based Recommender Widget
+              box(title = div("Recommendations for New Students", style="color:white"), status = "primary",
+                  solidHeader = TRUE, width = 12, collapsible = TRUE,
+                  column(width = 4,
+                         helpText("Check the boxes that match your interests. Then, click the recommend button
+                                  to see co-curricular activities that match these interests."),
+                         selectInput(
+                           "checkGroup",
+                           label = h4("Interests"),
+                           choices = tag_choice,
+                           multiple = TRUE
+                         ),
+                         # checkboxGroupInput("checkGroup", label = h3("Interests"), choices = tag_choice),
+                         hr(),
+                         actionButton("recGo3", "Recommend!")
+                         ),
+                  DT::dataTableOutput("table3")
+              ),
+              collapsed = FALSE
       ),
       tabItem(
         tabName = "stats",
