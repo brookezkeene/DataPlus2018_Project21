@@ -38,30 +38,34 @@ js_record <-
 
 #rating = rating
 
-# UI-Header---------------------------------------------------
+# UI-Header----------------------------------------------------------------
 
 header <-
   dashboardHeader(title = "Duke Co-Curricular E-Advisor",
                   titleWidth = 300)
-# UI-Sidebar -------------------------------------------------
+
+# UI-Sidebar --------------------------------------------------------------
 sidebar <-
   dashboardSidebar(
     width = 300,
     sidebarMenuOutput("menu"),
     sidebarMenu(
-      menuItem("Home", tabName = "home", icon = icon("home")),
-      #menuItem("Favorites", tabName = "favorites", icon= icon("star")),
+      menuItem(
+        "Home", 
+        tabName = "home", 
+        icon = icon("home")
+      ),
       menuItem(
         "Co-Curricular Recommender",
         tabName = "hybrid",
-        icon = icon("list"),
+        icon = icon("cogs"),
         badgeLabel = "new",
         badgeColor = "green"
       ),
       menuItem(
         "Find Similar Co-Curriculars",
         tabName = "jaccard",
-        icon = icon("th"),
+        icon = icon("list"),
         badgeLabel = "new",
         badgeColor = "green"
       ),
@@ -73,27 +77,23 @@ sidebar <-
         badgeColor = "green"
       ),
       menuItem(
-        "Most Popular",
-        tabName = "pop",
-        icon = icon("fire"),
-        badgeLabel = "hot",
-        badgeColor = "red"
-      ),
-      menuItem(
         "Statistics",
         tabName = "stats",
-        icon = icon("table"),
+        icon = icon("stats", lib = "glyphicon"),
         badgeLabel = "new",
         badgeColor = "green"
       ),
       menuItem(
         "Pathways",
         tabName = "pathways",
-        icon = icon("location-arrow"),
+        icon = icon("random"),
         badgeLabel = "coming soon",
         badgeColor = "yellow"
       ),
-      menuItem("Feedback", tabName = "feedback", icon = icon("comment")),
+      menuItem(
+        "Feedback", 
+        tabName = "feedback", 
+        icon = icon("edit")),
       menuItem(
         "About Us",
         tabName = "about",
@@ -101,7 +101,8 @@ sidebar <-
       )
     )
   )
-# UI-Body------------------------------------------------------
+
+# UI-Body------------------------------------------------------------------
 body <-
   dashboardBody(
     tabItems(
@@ -112,17 +113,16 @@ body <-
           theme = shinytheme("cerulean"),
           h3("Welcome!"),
           p(
-            "As we all know, Duke University can be a difficult environment to navigate, especially
-            with its countless opportunities and resources. Therefore, we have compiled a list of over
-            150 different co-curricular programs, although we hope to eventually include all Duke activities.
-            With the information we have gathered regarding these organizations, we have deveoloped
-            various algorithms that will recommend certain co-curricular programs based on a student's
-            interests and previous participation. Feel free to explore our website and test the tools
+            "To help students navigate Duke University's expansive network of opportunities and resources,
+            our team has compiled a list of over 150 different co-curricular programs related to technology,
+            and we have developed various algorithms that recommend activities to students based on their
+            interests and participation history. Feel free to explore our website and test the tools
             shown in the menu on the left"
           ),
           p(
-            "If you would like to help us improve our system, please fill out the User Profile
-            below. Additionally, if you would like to add your organization to our database or provide
+            "By filling out the User Profile below, you are helping us improve our recommendation algorithm
+            and granting us access to basic information, such as your Duke Net ID, Major, and Graduation Year. 
+            Additionally, if you would like to add your organization to our database or provide
             leave us a comment, please refer to our \"Feedback\" section. If you would like to learn more
             about our project, please visit the \"About Us\" section."
           ),
@@ -138,85 +138,89 @@ body <-
               collapsible = TRUE,
               textOutput("check"),
               column(
-                width = 8,
-                helpText(
-                  HTML(
-                    "Please select the programs that you have participated in during each year
-                    you have been at Duke.
-                    <ul>
-                    <li>Summer programs are counted under the academic year
-                    you finished directly prior to the program.</li>
-                    <li>If you have not completed a specific
-                    year yet, please select \"NA\".</li></ul>"
-                  )
-                ),
-                selectInput(
-                  "yr1prog",
-                  label = h4("*Programs - Year 1"),
-                  choices = prog_choice,
-                  multiple = TRUE
-                ),
-                selectInput(
-                  "yr2prog",
-                  label = h4("*Programs - Year 2"),
-                  choices = prog_choice,
-                  multiple = TRUE
-                ),
-                selectInput(
-                  "yr3prog",
-                  label = h4("*Programs - Year 3"),
-                  choices = prog_choice,
-                  multiple = TRUE
-                ),
-                selectInput(
-                  "yr4prog",
-                  label = h4("*Programs - Year 4+"),
-                  choices = prog_choice,
-                  multiple = TRUE
-                )
-              ),
-              column(
                 width = 4,
+                helpText(
+                  "We will be storing your information under the Net ID you logged in with. If this
+                  is not correct please log out first and then log in with the correct Net ID."
+                ),
+                hr(),
                 helpText(
                   "Please select up to 3 majors. If you are unsure, simply select \"Undeclared\"."
                 ),
                 selectInput(
                   "major",
-                  label = h4("*Major(s)"),
+                  label = h4("Major(s)"),
                   choices = maj_choice,
                   multiple = TRUE
                 ),
                 hr(),
-                helpText("Please type the year in which you will graduate from Duke."),
+                helpText("Please select the year in which you will graduate from Duke."),
                 selectInput(
                   "year",
-                  label = h4("*Graduation Year"),
+                  label = h4("Graduation Year"),
                   choices = c("2019", "2020", "2021")
-                ),              br(),br(),br(),
-                fluidRow(
-                  column(
+                )
+              ),
+              column(
+                width = 8,
+                helpText(
+                  HTML(
+                    "Please select the co-curricular programs that you have participated in for each year that
+                    you have been at Duke.
+                    <ul>
+                    <li>Summer programs are counted under the academic year
+                    you finished directly prior to the program.</li>
+                    <li>If you have not completed a specific
+                    year yet, please select only \"NA\".</li>
+                    </ul>"
+                  )
+                ),
+                selectInput(
+                  "yr1prog",
+                  label = h4("Co-Curriculars - Year 1"),
+                  choices = prog_choice,
+                  multiple = TRUE
+                ),
+                selectInput(
+                  "yr2prog",
+                  label = h4("Co-Curriculars - Year 2"),
+                  choices = prog_choice,
+                  multiple = TRUE
+                ),
+                selectInput(
+                  "yr3prog",
+                  label = h4("Co-Curriculars - Year 3"),
+                  choices = prog_choice,
+                  multiple = TRUE
+                ),
+                selectInput(
+                  "yr4prog",
+                  label = h4("Co-Curriculars - Year 4+"),
+                  choices = prog_choice,
+                  multiple = TRUE
+                )
+              ),
+              fluidRow(
+                br(),
+                column(
                   4,
                   align = "center",
-                  offset = 4, actionButton(
-                    "submit",
-                    label = "Submit",
-                    style = 'color: #2874A6;
-                    position:relative;
-                    right:20px;
-                    font-size: 1.2em;
-                    bottom: 18px;
-                    display:block;
-                    height: 100px;
-                    width: 100px;
-                    border-radius: 50%;
-                    border: 1px solid #2874A6;'
+                  offset = 4,
+                  div(
+                    actionButton(
+                      "submit",
+                      label = "Submit",
+                      style = 'color: #2874A6;
+                        font-size: 1.2em;
+                        position:relative;'
+                    )
                   )
-                  )
-                  )
+                )
               )
             )
-          )
-          )
+          )#,
+          #infoBoxOutput("infoBox1")
+        )
       ),
       tabItem(
         tabName = "hybrid",
@@ -245,9 +249,9 @@ body <-
               width = 12,
               collapsible = FALSE,
               DT::dataTableOutput("table")
-              )
+            )
           )
-      )
+        )
       ),
       tabItem(tabName = "jaccard",
               fluidPage(
@@ -278,7 +282,7 @@ body <-
                       see similar activities"
                     ),
                     choices = prog_choice[-1]
-                    ),
+                  ),
                   div(actionButton("recGo2", "Recommend!"), style =
                         "padding:10px 18px 12px; float:right"),
                   #),
@@ -287,7 +291,8 @@ body <-
                   #),
                   collapsed = FALSE
                 )
-                )),
+              )
+      ),
       tabItem(tabName = "newStudents",
               h2("New Students"),
               p("If you haven't participated in any co-curricular from our list, you can fill out your 
@@ -315,59 +320,78 @@ body <-
               collapsed = FALSE
       ),
       tabItem(
-        tabName = "pop",
-        # Use a fluid Bootstrap layout
+        tabName = "stats",
         fluidPage(
+          h2("Statistics"),
           theme = shinytheme("cerulean"),
-          # Give the page a title
-          titlePanel("Most Popular Activities by"),
-          fluidRow(column(6,
-                          wellPanel(
-                            selectInput(
-                              "classYear",
-                              h4("Class"),
-                              choices = c("2019", "2020", "2021", "All")
-                            )
-                          )),
-                   column(6,
-                          wellPanel(
-                            selectInput("majorPop", h4("Major"), choices = maj_choice)
-                          ))),
-          fluidRow(
-            column(6,
-                   DT::dataTableOutput("actTable")),
-            column(6,
-                   DT::dataTableOutput("majorTable"))
+          div(
+            box(
+              title = div("Most Popular Activities by...", style = "color:white"),
+              status = "primary",
+              width = 12,
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              fluidRow(
+                column(4,
+                       selectInput(
+                         "class",
+                         h4("The Class of"),
+                         choices = c("2019" , "2020" , "2021", "All")
+                       ),
+                       selectInput(
+                         "grade",
+                         h4("During their"),
+                         choices = c(
+                           "Freshman Year" = "fresh",
+                           "Sophomore Year" = "soph",
+                           "Junior Year" = "junior",
+                           "Senior Year" = "senior"
+                         )
+                       )
+                )
+              ),
+              plotOutput("gradePlot")
+            )
+          ),
+          div(
+            box(
+              title = div("Student Participation Information from...", style = "color:white"),
+              status = "primary",
+              width = 12,
+              solidHeader = TRUE,
+              collapsible = TRUE,
+              fluidRow(
+                column(6,
+                       
+                       selectInput(
+                         "classYear",
+                         h4("Class"),
+                         choices = c("2019", "2020", "2021", "All")
+                       )
+                ),
+                column(6,
+                       selectInput("majorPop", h4("Major"), choices = maj_choice)
+                )
+              ),
+              fluidRow(
+                column(6,
+                       DT::dataTableOutput("actTable")
+                ),
+                column(6,
+                       DT::dataTableOutput("majorTable")
+                )
+              )
+            )
           )
         )
       ),
-      tabItem(
-        tabName = "stats",
-        # Use a fluid Bootstrap layout
-        fluidPage(
-          theme = shinytheme("cerulean"),
-          # Give the page a title
-          titlePanel("Student Participation Information from"),
-          fluidRow(column(4,
-                          wellPanel(
-                            selectInput(
-                              "class",
-                              h4("The Class of"),
-                              choices = c("2019" , "2020" , "2021", "All")
-                            ),
-                            selectInput(
-                              "grade",
-                              h4("During their"),
-                              choices = c(
-                                "Freshman Year" = "fresh",
-                                "Sophomore Year" = "soph",
-                                "Junior Year" = "junior",
-                                "Senior Year" = "senior"
-                              )
-                            )
-                          )),
-                   mainPanel(plotOutput("gradePlot")))
-        )
+      tabItem(tabName = "pathways", 
+              fluidPage(
+                h2("Student Pathways"),
+                br(),
+                h4("Under Construction"),
+                h4(icon("toolbox"))
+              )
       ),
       tabItem(tabName = "feedback",
               h2("Feedback"),
@@ -425,13 +449,8 @@ body <-
                              width: 50px;
                              border-radius: 50%;
                              border: 2px solid red;')
-                )
-                ),
-      tabItem(tabName = "pathways", 
-              fluidPage(
-                h2("Student Pathways")
               )
-             ),
+      ),
       tabItem(tabName = "about",
               fluidPage(
                 titlePanel("About Us"),
@@ -466,7 +485,9 @@ body <-
                   "Project Team Members: Alec Ashforth, Brooke Keene, Vincent Liu, Dezmanique Martin"
                 ),
                 p("Project Clients: Michael Faber, Evan Levine")
-                ))
-            )
-          )
+              )
+      )
+    )
+  )
+
 ui <- dashboardPage(header, sidebar, body)
