@@ -139,9 +139,11 @@ body <-
               textOutput("check"),
               column(
                 width = 4,
-                helpText(
-                  "We will be storing your information under the Net ID you logged in with. If this
-                  is not correct please log out first and then log in with the correct Net ID."
+                helpText("Please enter your Duke Net ID if you wish to share your data with us."),
+                textInput(
+                  "netid",
+                  label = h4("Net ID"),
+                  placeholder = "Ex. abc123"
                 ),
                 hr(),
                 helpText(
@@ -240,7 +242,14 @@ body <-
           fluidRow(column(
             4,
             align = "center",
-            offset = 4, actionButton("recGo", "Recommend !"))),
+            offset = 4, 
+            helpText("Please enter your Duke Net ID to see your recommendations"),
+            textInput(
+              "recNetID",
+              label = h4("Net ID"),
+              placeholder = "Ex. abc123"
+            ),
+            actionButton("recGo", "Recommend !"))),
           br(),
           div(
             box(
@@ -326,7 +335,7 @@ body <-
           theme = shinytheme("cerulean"),
           div(
             box(
-              title = div("Most Popular Activities by...", style = "color:white"),
+              title = div("Student Participation Information from...", style = "color:white"),
               status = "primary",
               width = 12,
               solidHeader = TRUE,
@@ -355,7 +364,7 @@ body <-
           ),
           div(
             box(
-              title = div("Student Participation Information from...", style = "color:white"),
+              title = div("Most Popular Activities by...", style = "color:white"),
               status = "primary",
               width = 12,
               solidHeader = TRUE,

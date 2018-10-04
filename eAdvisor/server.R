@@ -736,6 +736,7 @@ collaborative_filter <- function(netID, progress)
           ids_programs[, c("student", topN_names)]
         topN_studPart <-
           topN_participation[topN_participation$student == stud,]
+        topN_studPart <- topN_studPart[-2,]
         topN_studPart <-
           as.numeric(topN_studPart[!(names(topN_studPart) %in% c("student"))])
         
@@ -939,7 +940,7 @@ server <- function(input, output, session) {
                  on.exit(rec_progress$close())
                  rec_progress$set(message = "Loading Recommendations...", value = 0)
                  # Run Functions and Store Prediction Data
-                 netID = netid
+                 netID = input$recNetID
                  content_scores <-
                    content_filter(netID, rec_progress)
                  # Check if netID exists in our system
@@ -953,9 +954,9 @@ server <- function(input, output, session) {
                  }
                  
                  rec_progress$inc(0.1)                      # Progress Bar - 40%
-                 
-                 collaborative_scores <-
-                   collaborative_filter(netID, rec_progress)
+
+                 #collaborative_scores <-
+                  # collaborative_filter(netID, rec_progress)
                  
                  rec_progress$inc(0.1)                      # Progress Bar - 90%
                  
@@ -971,12 +972,16 @@ server <- function(input, output, session) {
                    ))
                  
                  # Calculate weights of recommendation systems
-                 content_percentage = 0.75
-                 collaborative_percentage = 0.25
+                 # content_percentage = 0.75
+                 # collaborative_percentage = 0.25
+                 # for (i in 1:nrow(content_scores)) {
+                 #   final_scores[i, 1] <-
+                 #     (content_scores[i, 1] * content_percentage) + (collaborative_scores[i, 1] *
+                 #                                                      collaborative_percentage)
+                 # }
+                 
                  for (i in 1:nrow(content_scores)) {
-                   final_scores[i, 1] <-
-                     (content_scores[i, 1] * content_percentage) + (collaborative_scores[i, 1] *
-                                                                      collaborative_percentage)
+                   final_scores[i, 1] <- (content_scores[i, 1])
                  }
                  
                  # Organize final scores

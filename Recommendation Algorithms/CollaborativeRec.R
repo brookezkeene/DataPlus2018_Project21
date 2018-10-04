@@ -110,6 +110,7 @@ for(i in 1:num_studs) {
       # get student's participation history for those N programs
       topN_participation <- ids_programs[,c("student", topN_names)]
       topN_studPart <- topN_participation[topN_participation$student == stud,]
+      topN_studPart <- topN_studPart[-2,]
       topN_studPart <- as.numeric(topN_studPart[!(names(topN_studPart) %in% c("student"))])
       
       # calculate the score for that program and student
